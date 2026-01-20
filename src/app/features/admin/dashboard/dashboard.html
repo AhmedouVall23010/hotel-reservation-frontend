@@ -1,0 +1,16 @@
+<div class="p-6">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Tableau de bord Administrateur</h1>
+    <p class="text-gray-600 mt-2">Bienvenue {{ user()?.nom }} {{ user()?.prenom }}</p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <p class="text-gray-700">Ceci est le tableau de bord de l'administrateur</p>
+    <button
+      (click)="logout()"
+      class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+    >
+      Se déconnecter
+    </button>
+  </div>
+</div>

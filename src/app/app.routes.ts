@@ -1,3 +1,55 @@
 import { Routes } from '@angular/router';
+import { authGuard, roleGuard } from './core/guards';
+import { guestGuard } from './core/guards/guest.guard';
+import { UserRole } from './core/constants/api.constants';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+  {
+    path: 'loading',
+    loadComponent: () => import('./shared/components/loading/loading').then(m => m.Loading),
+  },
+  {
+    path: 'auth',
+    loadComponent: () => import('./shared/components/layouts/auth-layout/auth-layout').then(m => m.AuthLayout),
+    canActivate: [guestGuard],
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./features/auth/login/login').then(m => m.Login),
+      },
+      {
+        path: 'register',
+        loadComponent: () => import('./features/auth/register/register').then(m => m.Register),
+      },
+      {
+        path: '',
+        redirectTo: 'login',
+        pathMatch: 'full',
+      },
+    ],
+  },
+  {
+    path: 'admin',
+    canActivate: [authGuard, roleGuard([UserRole.ADMIN])],
+    loadChildren: () => import('./features/admin/admin.routes').then(m => m.routes),
+  },
+  {
+    path: 'reception',
+    canActivate: [authGuard, roleGuard([UserRole.RECEPTION])],
+    loadChildren: () => import('./features/reception/reception.routes').then(m => m.routes),
+  },
+  {
+    path: 'client',
+    canActivate: [authGuard, roleGuard([UserRole.USER])],
+    loadChildren: () => import('./features/client/client.routes').then(m => m.routes),
+  },
+  {
+    path: '',
+    redirectTo: '/loading',
+    pathMatch: 'full',
+  },
+  {
+    path: '**',
+    redirectTo: '/loading',
+  },
+];
