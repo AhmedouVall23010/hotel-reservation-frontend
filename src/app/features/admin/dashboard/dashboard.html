@@ -1,16 +1,89 @@
-<div class="p-6">
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900">Tableau de bord Administrateur</h1>
-    <p class="text-gray-600 mt-2">Bienvenue {{ user()?.nom }} {{ user()?.prenom }}</p>
-  </div>
+<div class="flex h-screen bg-gray-50">
+  <aside
+    [class.w-64]="sidebarOpen()"
+    [class.w-0]="!sidebarOpen()"
+    class="bg-gray-900 text-white transition-all duration-300 overflow-hidden flex flex-col h-full"
+  >
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold mb-8">Hôtel Admin</h2>
+        <nav class="space-y-2">
+          <a
+            routerLink="/admin/dashboard"
+            routerLinkActive="bg-gray-800"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Tableau de bord
+          </a>
+          <a
+            routerLink="/admin/users"
+            routerLinkActive="bg-gray-800"
+            class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Utilisateurs
+          </a>
+          <a
+            routerLink="/admin/rooms"
+            routerLinkActive="bg-gray-800"
+            class="flex items-center px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Chambres
+          </a>
+        </nav>
+      </div>
+    </div>
+    <div class="border-t border-gray-800 p-4 bg-gray-900 flex-shrink-0">
+      <div class="flex items-center mb-3">
+        <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+          <span class="text-sm font-bold text-white">{{ user()?.nom?.charAt(0) }}{{ user()?.prenom?.charAt(0) }}</span>
+        </div>
+        <div class="ml-3 flex-1 min-w-0">
+          <p class="text-sm font-semibold text-white truncate">{{ user()?.nom }} {{ user()?.prenom }}</p>
+          <p class="text-xs text-gray-300 truncate">{{ user()?.email }}</p>
+        </div>
+      </div>
+      <button
+        (click)="logout()"
+        class="w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg transition-colors text-sm font-medium text-white shadow-md hover:shadow-lg"
+      >
+        <span class="flex items-center justify-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Déconnexion
+        </span>
+      </button>
+    </div>
+  </aside>
 
-  <div class="bg-white rounded-lg shadow p-6">
-    <p class="text-gray-700">Ceci est le tableau de bord de l'administrateur</p>
-    <button
-      (click)="logout()"
-      class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-    >
-      Se déconnecter
-    </button>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <button
+          (click)="toggleSidebar()"
+          class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h1 class="text-xl font-semibold text-gray-900">Administration</h1>
+        <div></div>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <router-outlet />
+    </main>
   </div>
 </div>

@@ -1,22 +1,23 @@
 import { inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from './auth.service';
 
 export function authInitializer(): () => Promise<void> {
-  return () => {
+  return async () => {
+    const authService = inject(AuthService);
     const router = inject(Router);
     const platformId = inject(PLATFORM_ID);
 
-    return new Promise<void>((resolve) => {
-      if (!isPlatformBrowser(platformId)) {
-        resolve();
-        return;
-      }
+    if (!isPlatformBrowser(platformId)) {
+      return;
+    }
 
-      setTimeout(() => {
-        router.navigate(['/loading'], { replaceUrl: true });
-        resolve();
-      }, 0);
-    });
+    await authService.initializeAuth();
+
+    const currentPath = window.location.pathname;
+    if (currentPath === '/' || currentPath === '') {
+      router.navigate(['/loading'], { replaceUrl: true });
+    }
   };
 }

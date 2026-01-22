@@ -1,0 +1,359 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Gestion des Chambres</h1>
+      <p class="text-gray-600 mt-1">Gérer toutes les chambres de l'hôtel</p>
+    </div>
+    <button
+      (click)="openAddModal()"
+      class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+    >
+      + Ajouter une chambre
+    </button>
+  </div>
+
+  @if (loading() && rooms().length === 0) {
+    <div class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (room of rooms(); track room.id) {
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+          <div class="relative h-48 bg-gray-200 overflow-hidden">
+            @if (room.imageUrl) {
+              <img [src]="getImageUrl(room.imageUrl)" [alt]="'Chambre ' + room.roomNumber" class="w-full h-full object-cover" />
+            } @else {
+              <div class="w-full h-full flex items-center justify-center text-gray-400">
+                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            }
+            <div class="absolute top-4 right-4">
+              <span [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + getStatusBadgeClass(room.available)">
+                {{ getStatusLabel(room.available) }}
+              </span>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xl font-semibold text-gray-900">Chambre {{ room.roomNumber }}</h3>
+              <span class="text-lg font-bold text-blue-600">{{ room.price }} MRU</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-2">{{ room.type }}</p>
+            <p class="text-sm text-gray-700 mb-4 line-clamp-2">{{ room.description }}</p>
+            <div class="flex space-x-2">
+              <button
+                (click)="toggleRoomStatus(room)"
+                [class]="room.available ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'"
+                class="flex-1 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
+              >
+                {{ room.available ? 'Marquer non disponible' : 'Marquer disponible' }}
+              </button>
+              <button
+                (click)="openEditModal(room)"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                Modifier
+              </button>
+              <button
+                (click)="deleteRoom(room)"
+                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="col-span-full text-center py-12 text-gray-500">
+          Aucune chambre trouvée
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (showAddModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 p-4" (click)="closeAddModal()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Ajouter une chambre</h2>
+        
+        <form [formGroup]="addForm" (ngSubmit)="addRoom()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Numéro de chambre</label>
+            <input
+              type="number"
+              formControlName="roomNumber"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (addForm.get('roomNumber')?.invalid && addForm.get('roomNumber')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Numéro invalide</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select
+              formControlName="type"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              
+              @for (type of roomTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+            @if (addForm.get('type')?.invalid && addForm.get('type')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Le type est requis</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prix (MRU)</label>
+            <input
+              type="number"
+              formControlName="price"
+              step="0.01"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (addForm.get('price')?.invalid && addForm.get('price')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Prix invalide</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              formControlName="description"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            ></textarea>
+            @if (addForm.get('description')?.invalid && addForm.get('description')?.touched) {
+              <p class="text-red-500 text-xs mt-1">La description est requise</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onAddImageChange($event)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (addForm.get('image')?.invalid && addForm.get('image')?.touched) {
+              <p class="text-red-500 text-xs mt-1">L'image est requise</p>
+            }
+          </div>
+
+          @if (actionStatus() === 'success') {
+            <div class="p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+              Chambre ajoutée avec succès
+            </div>
+          }
+          @if (actionStatus() === 'error') {
+            <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+              Erreur lors de l'ajout
+            </div>
+          }
+
+          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+            <button
+              type="button"
+              (click)="closeAddModal()"
+              class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              [disabled]="loading()"
+              class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              @if (loading()) {
+                <span class="flex items-center">
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Ajout...
+                </span>
+              } @else {
+                Ajouter
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showEditModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 p-4" (click)="closeEditModal()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Modifier la chambre</h2>
+        
+        <form [formGroup]="editForm" (ngSubmit)="updateRoom()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Numéro de chambre</label>
+            <input
+              type="number"
+              formControlName="roomNumber"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (editForm.get('roomNumber')?.invalid && editForm.get('roomNumber')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Numéro invalide</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select
+              formControlName="type"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              @for (type of roomTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+            @if (editForm.get('type')?.invalid && editForm.get('type')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Le type est requis</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prix (MRU)</label>
+            <input
+              type="number"
+              formControlName="price"
+              step="0.01"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (editForm.get('price')?.invalid && editForm.get('price')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Prix invalide</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              formControlName="description"
+              rows="3"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            ></textarea>
+            @if (editForm.get('description')?.invalid && editForm.get('description')?.touched) {
+              <p class="text-red-500 text-xs mt-1">La description est requise</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nouvelle image (optionnel)</label>
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onEditImageChange($event)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          @if (actionStatus() === 'success') {
+            <div class="p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+              Chambre modifiée avec succès
+            </div>
+          }
+          @if (actionStatus() === 'error') {
+            <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+              Erreur lors de la modification
+            </div>
+          }
+
+          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+            <button
+              type="button"
+              (click)="closeEditModal()"
+              class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              [disabled]="loading()"
+              class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              @if (loading()) {
+                <span class="flex items-center">
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Modification...
+                </span>
+              } @else {
+                Modifier
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showDeleteModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 p-4" (click)="closeDeleteModal()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md" (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-900">Confirmer la suppression</h2>
+            <p class="text-gray-600 mt-1 text-sm">Cette action est irréversible</p>
+          </div>
+        </div>
+        
+        <div class="mb-6">
+          <p class="text-gray-700">
+            Êtes-vous sûr de vouloir supprimer la chambre <span class="font-semibold">{{ roomToDelete()?.roomNumber }}</span> ?
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeDeleteModal()"
+            [disabled]="loading()"
+            class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            (click)="confirmDelete()"
+            [disabled]="loading()"
+            class="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            @if (loading()) {
+              <span class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Suppression...
+              </span>
+            } @else {
+              Supprimer
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

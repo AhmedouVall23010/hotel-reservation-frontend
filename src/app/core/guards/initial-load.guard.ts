@@ -3,7 +3,7 @@ import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { UserRole } from '../constants/api.constants';
 
-export const guestGuard: CanActivateFn = () => {
+export const initialLoadGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -29,5 +29,6 @@ export const guestGuard: CanActivateFn = () => {
     }
   }
 
-  return true;
+  router.navigateByUrl('/auth/login', { replaceUrl: true });
+  return false;
 };

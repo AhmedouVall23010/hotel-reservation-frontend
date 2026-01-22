@@ -17,11 +17,20 @@ export class AuthService {
   private errorHandler = inject(ErrorHandlerService);
   private platformId = inject(PLATFORM_ID);
 
-  private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
+  private authStateReady = signal<boolean>(false);
+  public authStateReady$ = this.authStateReady.asReadonly();
+
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  public isAuthenticated = computed(() => !!this.getToken());
-  public currentUser = signal<User | null>(this.getUserFromStorage());
+  public isAuthenticated = computed(() => {
+    if (!this.authStateReady()) {
+      return false;
+    }
+    return !!this.getToken();
+  });
+  
+  public currentUser = signal<User | null>(null);
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(getApiUrl(API_ENDPOINTS.AUTH.LOGIN), credentials).pipe(
@@ -37,7 +46,14 @@ export class AuthService {
         this.setUser(user);
         this.currentUser.set(user);
         this.currentUserSubject.next(user);
-        this.redirectByRole(user.role);
+        
+        if (!this.authStateReady()) {
+          this.authStateReady.set(true);
+        }
+        
+        setTimeout(() => {
+          this.redirectByRole(user.role);
+        }, 0);
       }),
       catchError((error) => {
         return throwError(() => this.errorHandler.handleError(error));
@@ -84,6 +100,41 @@ export class AuthService {
     return user?.role === role;
   }
 
+ 
+  async initializeAuth(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.authStateReady.set(true);
+      return;
+    }
+
+    try {
+      const token = this.getToken();
+      const user = this.getUserFromStorage();
+
+      if (token && user) {
+        this.currentUser.set(user);
+        this.currentUserSubject.next(user);
+      } else {
+        this.currentUser.set(null);
+        this.currentUserSubject.next(null);
+      }
+
+      
+    } catch (error) {
+      console.error('Error initializing auth:', error);
+     
+      this.currentUser.set(null);
+      this.currentUserSubject.next(null);
+    } finally {
+      this.authStateReady.set(true);
+    }
+  }
+
+
+  isAuthStateReady(): boolean {
+    return this.authStateReady();
+  }
+
   private setToken(token: string): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(STORAGE_KEYS.TOKEN, token);
@@ -107,16 +158,16 @@ export class AuthService {
   private redirectByRole(role: UserRole): void {
     switch (role) {
       case UserRole.ADMIN:
-        this.router.navigate(['/admin/dashboard']);
+        this.router.navigateByUrl('/admin/dashboard', { replaceUrl: true });
         break;
       case UserRole.RECEPTION:
-        this.router.navigate(['/reception/dashboard']);
+        this.router.navigateByUrl('/reception/dashboard', { replaceUrl: true });
         break;
       case UserRole.USER:
-        this.router.navigate(['/client/dashboard']);
+        this.router.navigateByUrl('/client/dashboard', { replaceUrl: true });
         break;
       default:
-        this.router.navigate(['/']);
+        this.router.navigateByUrl('/', { replaceUrl: true });
     }
   }
 }

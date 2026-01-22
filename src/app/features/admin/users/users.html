@@ -1,0 +1,344 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+      <p class="text-gray-600 mt-1">Gérer tous les utilisateurs du système</p>
+    </div>
+    <button
+      (click)="openAddModal()"
+      class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+    >
+      + Ajouter un utilisateur
+    </button>
+  </div>
+
+  @if (loading() && users().length === 0) {
+    <div class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  } @else {
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for (user of users(); track user.id) {
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">{{ user.nom }} {{ user.prenom }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500">{{ user.email }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span [class]="'px-2 py-1 text-xs font-semibold rounded-full ' + getRoleBadgeClass(user.role)">
+                    {{ getRoleLabel(user.role) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    (click)="openEditModal(user)"
+                    class="text-blue-600 hover:text-blue-900 mr-4"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    (click)="deleteUser(user)"
+                    class="text-red-600 hover:text-red-900"
+                  >
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                  Aucun utilisateur trouvé
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
+
+@if (showAddModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 p-4" (click)="closeAddModal()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Ajouter un utilisateur</h2>
+        
+        <form [formGroup]="addForm" (ngSubmit)="addUser()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+            <input
+              type="text"
+              formControlName="nom"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (addForm.get('nom')?.invalid && addForm.get('nom')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Le nom est requis</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+            <input
+              type="text"
+              formControlName="prenom"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (addForm.get('prenom')?.invalid && addForm.get('prenom')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Le prénom est requis</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              formControlName="email"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (addForm.get('email')?.invalid && addForm.get('email')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Email invalide</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
+            <input
+              type="password"
+              formControlName="password"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (addForm.get('password')?.invalid && addForm.get('password')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Minimum 6 caractères</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+            <select
+              formControlName="role"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              @for (role of roles; track role) {
+                <option [value]="role">{{ getRoleLabel(role) }}</option>
+              }
+            </select>
+          </div>
+
+          @if (actionStatus() === 'success') {
+            <div class="p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+              Utilisateur ajouté avec succès
+            </div>
+          }
+          @if (actionStatus() === 'error') {
+            <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+              Erreur lors de l'ajout
+            </div>
+          }
+
+          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+            <button
+              type="button"
+              (click)="closeAddModal()"
+              class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              [disabled]="loading()"
+              class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              @if (loading()) {
+                <span class="flex items-center">
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Ajout...
+                </span>
+              } @else {
+                Ajouter
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showEditModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 p-4" (click)="closeEditModal()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Modifier l'utilisateur</h2>
+        
+        <form [formGroup]="editForm" (ngSubmit)="updateUser()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+            <input
+              type="text"
+              formControlName="nom"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (editForm.get('nom')?.invalid && editForm.get('nom')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Le nom est requis</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+            <input
+              type="text"
+              formControlName="prenom"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (editForm.get('prenom')?.invalid && editForm.get('prenom')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Le prénom est requis</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              formControlName="email"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            @if (editForm.get('email')?.invalid && editForm.get('email')?.touched) {
+              <p class="text-red-500 text-xs mt-1">Email invalide</p>
+            }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe (optionnel)</label>
+            <input
+              type="password"
+              formControlName="password"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+            <select
+              formControlName="role"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              @for (role of roles; track role) {
+                <option [value]="role">{{ getRoleLabel(role) }}</option>
+              }
+            </select>
+          </div>
+
+          @if (actionStatus() === 'success') {
+            <div class="p-3 bg-green-100 text-green-700 rounded-lg text-sm">
+              Utilisateur modifié avec succès
+            </div>
+          }
+          @if (actionStatus() === 'error') {
+            <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+              Erreur lors de la modification
+            </div>
+          }
+
+          <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4">
+            <button
+              type="button"
+              (click)="closeEditModal()"
+              class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              [disabled]="loading()"
+              class="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              @if (loading()) {
+                <span class="flex items-center">
+                  <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Modification...
+                </span>
+              } @else {
+                Modifier
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showDeleteModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 p-4" (click)="closeDeleteModal()">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md" (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-900">Confirmer la suppression</h2>
+            <p class="text-gray-600 mt-1 text-sm">Cette action est irréversible</p>
+          </div>
+        </div>
+        
+        <div class="mb-6">
+          <p class="text-gray-700">
+            Êtes-vous sûr de vouloir supprimer l'utilisateur <span class="font-semibold">{{ userToDelete()?.nom }} {{ userToDelete()?.prenom }}</span> ?
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeDeleteModal()"
+            [disabled]="loading()"
+            class="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            (click)="confirmDelete()"
+            [disabled]="loading()"
+            class="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            @if (loading()) {
+              <span class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Suppression...
+              </span>
+            } @else {
+              Supprimer
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
-import { authGuard, roleGuard } from './core/guards';
+import { authGuard, roleGuard, initialLoadGuard } from './core/guards';
 import { guestGuard } from './core/guards/guest.guard';
 import { UserRole } from './core/constants/api.constants';
 
 export const routes: Routes = [
   {
     path: 'loading',
+    canActivate: [initialLoadGuard],
     loadComponent: () => import('./shared/components/loading/loading').then(m => m.Loading),
   },
   {
