@@ -6,9 +6,13 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     TEST: '/auth/test',
   },
-  ROOMS: {
-    GET_ALL: '/rooms',
-    GET_DATES_RESERVED: (roomId: number) => `/rooms/dates-reserved/${roomId}`,
+  // Public endpoints (no auth required)
+  PUBLIC: {
+    ROOMS: {
+      GET_ALL: '/rooms',
+      GET_DATES_RESERVED: (roomId: number) => `/rooms/dates-reserved/${roomId}`,
+      GET_DETAILS: (roomId: number) => `/rooms/${roomId}`,
+    },
   },
   CLIENT: {
     GET_ALL_BOOKINGS: '/client/get-all-bookings',

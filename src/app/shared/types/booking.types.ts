@@ -24,6 +24,7 @@ export type ClientAddBookingRequest = {
   readonly roomId: number;
   readonly startDate: string;
   readonly endDate: string;
+  readonly totalPrice?: number; // Optional for booking calculation
 };
 
 export type ClientChangeBookingStatusRequest = {

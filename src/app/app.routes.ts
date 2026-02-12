@@ -9,6 +9,15 @@ export const routes: Routes = [
     canActivate: [initialLoadGuard],
     loadComponent: () => import('./shared/components/loading/loading').then(m => m.Loading),
   },
+  // Public routes (no authentication required)
+  {
+    path: 'rooms',
+    loadComponent: () => import('./features/public/rooms/public-rooms.component').then(m => m.PublicRoomsComponent),
+  },
+  {
+    path: 'room/:id',
+    loadComponent: () => import('./features/public/room-detail/room-detail.component').then(m => m.RoomDetailComponent),
+  },
   {
     path: 'auth',
     loadComponent: () => import('./shared/components/layouts/auth-layout/auth-layout').then(m => m.AuthLayout),
