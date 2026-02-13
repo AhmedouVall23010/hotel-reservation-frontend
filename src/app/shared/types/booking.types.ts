@@ -21,6 +21,7 @@ export type Booking = {
 };
 
 export type ClientAddBookingRequest = {
+  readonly userId: number;
   readonly roomId: number;
   readonly startDate: string;
   readonly endDate: string;

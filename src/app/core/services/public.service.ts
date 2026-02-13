@@ -29,9 +29,10 @@ export class PublicService {
   /**
    * Get reserved dates for a specific room
    * Backend: GET /api/rooms/dates-reserved/{roomId}
+   * Response: [] or [{ startDate: string, endDate: string }]
    */
-  getReservedDates(roomId: number): Observable<string[]> {
-    return this.http.get<string[]>(getApiUrl(`/rooms/dates-reserved/${roomId}`)).pipe(
+  getReservedDates(roomId: number): Observable<Array<{ startDate: string; endDate: string }>> {
+    return this.http.get<Array<{ startDate: string; endDate: string }>>(getApiUrl(`/rooms/dates-reserved/${roomId}`)).pipe(
       catchError((error) => {
         console.error(`Error fetching reserved dates for room ${roomId}:`, error);
         return throwError(() => error);

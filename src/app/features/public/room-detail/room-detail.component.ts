@@ -117,25 +117,64 @@ import type { Room } from '../../../shared/types';
               <p class="font-serif text-3xl text-gold">{{ room()!.price }} MRU <span class="font-sans text-xs text-stone font-light tracking-wide">/ nuit</span></p>
             </div>
 
-            <!-- Reserved Dates -->
-            <div class="border-t border-linen pt-6 mb-8">
-              <h3 class="font-serif text-xl text-charcoal mb-4">Dates reservees</h3>
+            <!-- Reserved Dates Calendar -->
+            <div class="border-t border-linen pt-8 mb-8">
+              <h3 class="font-serif text-xl text-charcoal mb-6">Disponibilite</h3>
 
-              <div *ngIf="loadingDates()" class="font-sans text-sm text-stone font-light">
-                Chargement des dates...
+              <div *ngIf="loadingDates()" class="flex justify-center items-center py-12">
+                <div class="w-6 h-6 border border-sand border-t-taupe rounded-full animate-spin"></div>
               </div>
 
-              <div *ngIf="!loadingDates() && reservedDates().length === 0">
-                <p class="font-sans text-sm text-success font-light">Toutes les dates sont disponibles</p>
-              </div>
+              <div *ngIf="!loadingDates()" class="bg-cream/30 border border-linen p-6">
+                <div class="flex items-center justify-between mb-6">
+                  <button
+                    type="button"
+                    (click)="previousMonth()"
+                    class="p-2 rounded-full hover:bg-cream/50 transition-all duration-300 hover:scale-110"
+                  >
+                    <svg class="w-5 h-5 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <h4 class="font-serif text-xl text-charcoal capitalize font-light">{{ getMonthName() }}</h4>
+                  <button
+                    type="button"
+                    (click)="nextMonth()"
+                    class="p-2 rounded-full hover:bg-cream/50 transition-all duration-300 hover:scale-110"
+                  >
+                    <svg class="w-5 h-5 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
 
-              <div *ngIf="!loadingDates() && reservedDates().length > 0">
-                <p class="font-sans text-sm text-stone font-light mb-3">Cette chambre est reservee aux dates suivantes :</p>
-                <div class="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                  <span *ngFor="let date of reservedDates()"
-                        class="px-3 py-1.5 bg-error/5 border border-error/15 font-sans text-xs text-error text-center">
-                    {{ formatDate(date) }}
-                  </span>
+                <div class="grid grid-cols-7 gap-1 mb-3">
+                  <div class="text-center font-sans text-xs tracking-[0.12em] uppercase text-stone font-medium py-2">Lun</div>
+                  <div class="text-center font-sans text-xs tracking-[0.12em] uppercase text-stone font-medium py-2">Mar</div>
+                  <div class="text-center font-sans text-xs tracking-[0.12em] uppercase text-stone font-medium py-2">Mer</div>
+                  <div class="text-center font-sans text-xs tracking-[0.12em] uppercase text-stone font-medium py-2">Jeu</div>
+                  <div class="text-center font-sans text-xs tracking-[0.12em] uppercase text-stone font-medium py-2">Ven</div>
+                  <div class="text-center font-sans text-xs tracking-[0.12em] uppercase text-stone font-medium py-2">Sam</div>
+                  <div class="text-center font-sans text-xs tracking-[0.12em] uppercase text-stone font-medium py-2">Dim</div>
+                </div>
+
+                <div class="grid grid-cols-7 gap-1.5">
+                  <div *ngFor="let day of getCalendarDays()"
+                       [class]="'aspect-square flex items-center justify-center text-sm font-sans rounded transition-all duration-300 ' +
+                         (isDateReserved(day)
+                           ? 'bg-error/15 text-error border border-error/20'
+                           : day.getMonth() !== calendarDate().getMonth()
+                           ? 'text-sand/40'
+                           : 'text-charcoal hover:bg-cream/50')">
+                    {{ day.getDate() }}
+                  </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-linen">
+                  <div class="flex items-center gap-3">
+                    <div class="w-5 h-5 bg-error/15 border border-error/20 rounded"></div>
+                    <span class="font-sans text-xs text-stone font-light">Date indisponible</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -176,11 +215,12 @@ export class RoomDetailComponent implements OnInit {
   private router = inject(Router);
 
   room = signal<Room | null>(null);
-  reservedDates = signal<string[]>([]);
+  reservedDates = signal<Array<{ startDate: string; endDate: string }>>([]);
   loading = signal(false);
   loadingDates = signal(false);
   error = signal<string | null>(null);
   mobileMenuOpen = false;
+  calendarDate = signal<Date>(new Date());
 
   ngOnInit() {
     const roomId = this.route.snapshot.paramMap.get('id');
@@ -290,5 +330,74 @@ export class RoomDetailComponent implements OnInit {
       month: 'short',
       year: 'numeric'
     });
+  }
+
+  getCalendarDays(): Date[] {
+    const year = this.calendarDate().getFullYear();
+    const month = this.calendarDate().getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const days: Date[] = [];
+    
+    const adjustedStartingDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+    
+    for (let i = 0; i < adjustedStartingDay; i++) {
+      days.push(new Date(year, month, -adjustedStartingDay + i + 1));
+    }
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+    
+    const remainingDays = 42 - days.length;
+    for (let day = 1; day <= remainingDays; day++) {
+      days.push(new Date(year, month + 1, day));
+    }
+    
+    return days.slice(0, 30);
+  }
+
+  getMonthName(): string {
+    return this.calendarDate().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  }
+
+  previousMonth(): void {
+    const newDate = new Date(this.calendarDate());
+    newDate.setMonth(newDate.getMonth() - 1);
+    this.calendarDate.set(newDate);
+  }
+
+  nextMonth(): void {
+    const newDate = new Date(this.calendarDate());
+    newDate.setMonth(newDate.getMonth() + 1);
+    this.calendarDate.set(newDate);
+  }
+
+  isDateReserved(date: Date): boolean {
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (checkDate < today) {
+      return false;
+    }
+
+    const periods = this.reservedDates();
+    for (const period of periods) {
+      const periodStart = new Date(period.startDate);
+      periodStart.setHours(0, 0, 0, 0);
+      const periodEnd = new Date(period.endDate);
+      periodEnd.setHours(0, 0, 0, 0);
+
+      if (checkDate >= periodStart && checkDate <= periodEnd) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }

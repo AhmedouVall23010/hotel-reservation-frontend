@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ClientService } from '../../../core/services/client.service';
 import { PublicService } from '../../../core/services/public.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AuthService } from '../../../core/services/auth.service';
 import type { Room, ClientAddBookingRequest } from '../../../shared/types';
 
 @Component({
@@ -37,11 +38,11 @@ import type { Room, ClientAddBookingRequest } from '../../../shared/types';
           <div *ngIf="reservedDates().length > 0" class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-4">
             <p class="font-semibold mb-2">Note: Some dates are unavailable</p>
             <div class="text-sm">
-              The following dates are already reserved:
+              The following periods are already reserved:
               <div class="mt-2 flex flex-wrap gap-2">
-                <span *ngFor="let date of reservedDates()"
+                <span *ngFor="let period of reservedDates()"
                       class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">
-                  {{ formatDate(date) }}
+                  {{ formatDate(period.startDate) }} - {{ formatDate(period.endDate) }}
                 </span>
               </div>
             </div>
@@ -130,12 +131,13 @@ import type { Room, ClientAddBookingRequest } from '../../../shared/types';
 export class BookRoomComponent implements OnInit {
   private clientService = inject(ClientService);
   private publicService = inject(PublicService);
+  private authService = inject(AuthService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private toastService = inject(ToastService);
 
   room = signal<Room | null>(null);
-  reservedDates = signal<string[]>([]);
+  reservedDates = signal<Array<{ startDate: string; endDate: string }>>([]);
   loading = signal(false);
   submitting = signal(false);
   dateValidationError = signal<string | null>(null);
@@ -235,9 +237,13 @@ export class BookRoomComponent implements OnInit {
     const start = new Date(this.startDate);
     const end = new Date(this.endDate);
 
-    return this.reservedDates().some(dateStr => {
-      const reservedDate = new Date(dateStr);
-      return reservedDate >= start && reservedDate <= end;
+    return this.reservedDates().some(period => {
+      const periodStart = new Date(period.startDate);
+      const periodEnd = new Date(period.endDate);
+      
+      return (start >= periodStart && start <= periodEnd) ||
+             (end >= periodStart && end <= periodEnd) ||
+             (start <= periodStart && end >= periodEnd);
     });
   }
 
@@ -266,7 +272,15 @@ export class BookRoomComponent implements OnInit {
 
     this.submitting.set(true);
 
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      this.toastService.error('Vous devez être connecté pour effectuer une réservation');
+      this.submitting.set(false);
+      return;
+    }
+
     const bookingRequest: ClientAddBookingRequest = {
+      userId: currentUser.id,
       roomId: this.room()!.id,
       startDate: this.startDate,
       endDate: this.endDate,

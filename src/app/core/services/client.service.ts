@@ -54,17 +54,21 @@ export class ClientService {
   /**
    * Check if requested dates conflict with existing reservations
    */
-  private datesConflict(startDate: string, endDate: string, reservedDates: string[]): boolean {
-    if (!reservedDates || reservedDates.length === 0) {
+  private datesConflict(startDate: string, endDate: string, reservedPeriods: Array<{ startDate: string; endDate: string }>): boolean {
+    if (!reservedPeriods || reservedPeriods.length === 0) {
       return false;
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    return reservedDates.some(dateStr => {
-      const reservedDate = new Date(dateStr);
-      return reservedDate >= start && reservedDate <= end;
+    return reservedPeriods.some(period => {
+      const periodStart = new Date(period.startDate);
+      const periodEnd = new Date(period.endDate);
+      
+      return (start >= periodStart && start <= periodEnd) ||
+             (end >= periodStart && end <= periodEnd) ||
+             (start <= periodStart && end >= periodEnd);
     });
   }
 }

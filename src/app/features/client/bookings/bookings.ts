@@ -1,8 +1,10 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ClientService } from '../../../core/services/client.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ErrorHandlerService } from '../../../core/services/error-handler.service';
 import { BookingStatus } from '../../../core/constants/api.constants';
 import type { Booking, ClientChangeBookingStatusRequest } from '../../../shared/types';
 
@@ -16,6 +18,7 @@ import type { Booking, ClientChangeBookingStatusRequest } from '../../../shared/
 export class BookingsComponent implements OnInit {
   private clientService = inject(ClientService);
   private toastService = inject(ToastService);
+  private errorHandler = inject(ErrorHandlerService);
   private route = inject(ActivatedRoute);
 
   bookings = signal<Booking[]>([]);
@@ -40,9 +43,14 @@ export class BookingsComponent implements OnInit {
         this.bookings.set(bookings);
         this.loading.set(false);
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.loading.set(false);
-        this.toastService.error('Impossible de charger vos reservations');
+        if (error.status === 404) {
+          this.bookings.set([]);
+        } else {
+          const errorMessage = this.errorHandler.handleError(error);
+          this.toastService.error(`Erreur: ${errorMessage}`);
+        }
       },
     });
   }
@@ -73,9 +81,10 @@ export class BookingsComponent implements OnInit {
         this.toastService.success('Reservation annulee avec succes');
         this.loadBookings();
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.loading.set(false);
-        this.toastService.error("Erreur lors de l'annulation de la reservation");
+        const errorMessage = this.errorHandler.handleError(error);
+        this.toastService.error(`Erreur lors de l'annulation de la reservation: ${errorMessage}`);
       },
     });
   }
