@@ -38,6 +38,15 @@ export const API_ENDPOINTS = {
     DELETE: (id: number) => `/admin/rooms/delete/${id}`,
     CHANGE_STATUS: (id: number) => `/admin/rooms/change-status/${id}`,
   },
+  ADMIN_BOOKINGS: {
+    GET_ALL: '/admin/bookings',
+    GET_BY_ID: (id: number) => `/admin/bookings/${id}`,
+    ADD: '/admin/bookings/add',
+    UPDATE: (id: number) => `/admin/bookings/update/${id}`,
+    DELETE: (id: number) => `/admin/bookings/delete/${id}`,
+    GET_TODAY: '/admin/bookings/today',
+    GET_ANALYSIS: '/admin/bookings/analysis',
+  },
 } as const;
 
 export enum UserRole {

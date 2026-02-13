@@ -18,6 +18,10 @@ export const routes: Routes = [
         loadComponent: () => import('./rooms/rooms').then(m => m.RoomsComponent),
       },
       {
+        path: 'bookings',
+        loadComponent: () => import('./bookings/bookings').then(m => m.BookingsComponent),
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',

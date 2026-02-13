@@ -13,6 +13,11 @@ import type {
   RoomChangeStatusResponse,
   RoomUpdateResponse,
   RoomDeleteResponse,
+  Booking,
+  AdminAddBookingRequest,
+  AdminUpdateBookingRequest,
+  AdminUpdateBookingResponse,
+  AdminBookingAnalysis,
 } from '../../shared/types';
 
 @Injectable({
@@ -83,5 +88,33 @@ export class AdminService {
 
   changeRoomStatus(id: number): Observable<RoomChangeStatusResponse> {
     return this.http.put<RoomChangeStatusResponse>(getApiUrl(API_ENDPOINTS.ADMIN_ROOMS.CHANGE_STATUS(id)), {});
+  }
+
+  getAllBookings(): Observable<Booking[]> {
+    return this.http.get<Booking[]>(getApiUrl(API_ENDPOINTS.ADMIN_BOOKINGS.GET_ALL));
+  }
+
+  getBookingById(id: number): Observable<Booking> {
+    return this.http.get<Booking>(getApiUrl(API_ENDPOINTS.ADMIN_BOOKINGS.GET_BY_ID(id)));
+  }
+
+  addBooking(booking: AdminAddBookingRequest): Observable<Booking> {
+    return this.http.post<Booking>(getApiUrl(API_ENDPOINTS.ADMIN_BOOKINGS.ADD), booking);
+  }
+
+  updateBooking(id: number, booking: AdminUpdateBookingRequest): Observable<AdminUpdateBookingResponse> {
+    return this.http.put<AdminUpdateBookingResponse>(getApiUrl(API_ENDPOINTS.ADMIN_BOOKINGS.UPDATE(id)), booking);
+  }
+
+  deleteBooking(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(getApiUrl(API_ENDPOINTS.ADMIN_BOOKINGS.DELETE(id)));
+  }
+
+  getTodayBookings(): Observable<Booking[]> {
+    return this.http.get<Booking[]>(getApiUrl(API_ENDPOINTS.ADMIN_BOOKINGS.GET_TODAY));
+  }
+
+  getBookingAnalysis(): Observable<AdminBookingAnalysis> {
+    return this.http.get<AdminBookingAnalysis>(getApiUrl(API_ENDPOINTS.ADMIN_BOOKINGS.GET_ANALYSIS));
   }
 }

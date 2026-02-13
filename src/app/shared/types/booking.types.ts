@@ -1,5 +1,13 @@
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';
 
+export type BookingUser = {
+  readonly id: number;
+  readonly nom: string;
+  readonly prenom: string;
+  readonly email: string;
+  readonly role: string;
+};
+
 export type BookingRoom = {
   readonly id: number;
   readonly roomNumber: number;
@@ -12,7 +20,7 @@ export type BookingRoom = {
 
 export type Booking = {
   readonly id: number;
-  readonly user: null;
+  readonly user: BookingUser | null;
   readonly room: BookingRoom;
   readonly startDate: string;
   readonly endDate: string;
@@ -34,4 +42,30 @@ export type ClientChangeBookingStatusRequest = {
 
 export type ReceptionBookingsStatusRequest = {
   readonly status: BookingStatus;
+};
+
+export type AdminAddBookingRequest = {
+  readonly userId: number;
+  readonly roomId: number;
+  readonly startDate: string;
+  readonly endDate: string;
+  readonly status?: BookingStatus;
+};
+
+export type AdminUpdateBookingRequest = {
+  readonly status?: BookingStatus;
+  readonly startDate?: string;
+  readonly endDate?: string;
+};
+
+export type AdminUpdateBookingResponse = {
+  readonly message: string;
+  readonly booking: Booking;
+};
+
+export type AdminBookingAnalysis = {
+  readonly totalUsers: number;
+  readonly totalRooms: number;
+  readonly reservedRooms: number;
+  readonly totalBookings: number;
 };

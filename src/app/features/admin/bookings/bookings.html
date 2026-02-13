@@ -1,0 +1,296 @@
+<div class="space-y-10">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-serif text-3xl font-light text-charcoal">Gestion des Reservations</h1>
+      <p class="font-sans text-sm text-stone font-light mt-2">Gerer toutes les reservations du systeme</p>
+    </div>
+    <button
+      (click)="openAddModal()"
+      class="px-6 py-3 font-sans text-xs tracking-[0.12em] uppercase bg-taupe text-cream hover:bg-taupe/90 transition-all duration-500"
+    >
+      + Ajouter une reservation
+    </button>
+  </div>
+
+  @if (loading() && bookings().length === 0) {
+    <div class="flex justify-center items-center py-16">
+      <div class="w-8 h-8 border border-sand border-t-taupe rounded-full animate-spin"></div>
+    </div>
+  } @else {
+    <div class="border border-linen overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead>
+            <tr class="bg-cream/50">
+              <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Utilisateur</th>
+              <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Chambre</th>
+              <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Date debut</th>
+              <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Date fin</th>
+              <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Prix total</th>
+              <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Statut</th>
+              <th class="px-6 py-4 text-right font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-linen">
+            @for (booking of bookings(); track booking.id) {
+              <tr class="hover:bg-cream/30 transition-colors duration-300">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <p class="font-sans text-sm text-charcoal">{{ getUserName(booking) }}</p>
+                  <p class="font-sans text-xs text-stone mt-0.5">{{ getUserEmail(booking) }}</p>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <p class="font-serif text-base text-charcoal">Chambre {{ booking.room.roomNumber }}</p>
+                  <p class="font-sans text-xs text-stone mt-0.5">{{ booking.room.type }}</p>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <p class="font-sans text-sm text-charcoal">{{ formatDate(booking.startDate) }}</p>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <p class="font-sans text-sm text-charcoal">{{ formatDate(booking.endDate) }}</p>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <p class="font-serif text-base text-gold">{{ booking.totalPrice }} MRU</p>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span [class]="'px-3 py-1 font-sans text-xs tracking-[0.05em] uppercase ' + getStatusBadgeClass(booking.status)">
+                    {{ getStatusLabel(booking.status) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <button
+                    (click)="openEditModal(booking)"
+                    class="font-sans text-xs tracking-[0.08em] uppercase text-taupe hover:text-charcoal transition-colors duration-300 mr-4"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    (click)="deleteBooking(booking)"
+                    class="font-sans text-xs tracking-[0.08em] uppercase text-error hover:text-error/70 transition-colors duration-300"
+                  >
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="px-6 py-16 text-center">
+                  <p class="font-sans text-sm text-stone font-light">Aucune reservation trouvee</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Booking Modal (Add/Edit) -->
+@if (showBookingModal()) {
+  <div class="fixed inset-0 bg-black/10 flex items-center justify-center z-50 p-4" (click)="closeBookingModal()">
+    <div class="bg-ivory w-full max-w-md max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+      <div class="p-8">
+        <h2 class="font-serif text-2xl font-light text-charcoal mb-8">
+          {{ modalMode() === 'add' ? 'Ajouter une reservation' : 'Modifier la reservation' }}
+        </h2>
+
+        <form [formGroup]="addForm" (ngSubmit)="saveBooking()" class="space-y-6">
+          @if (modalMode() === 'add') {
+            <div>
+              <label class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">Utilisateur</label>
+              <select formControlName="userId"
+                class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm focus:outline-none focus:border-charcoal transition-colors duration-300">
+                <option value="">Selectionner un utilisateur</option>
+                @for (user of clientUsers(); track user.id) {
+                  <option [value]="user.id">{{ user.nom }} {{ user.prenom }} ({{ user.email }})</option>
+                }
+              </select>
+              @if (addForm.get('userId')?.invalid && addForm.get('userId')?.touched) {
+                <p class="font-sans text-xs text-error mt-2">Requis</p>
+              }
+            </div>
+          }
+
+          <div>
+            <label class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">Chambre</label>
+            <select formControlName="roomId" (change)="onRoomSelect()" [disabled]="modalMode() === 'edit'"
+              class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm focus:outline-none focus:border-charcoal transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+              <option value="">Selectionner une chambre</option>
+              @for (room of rooms(); track room.id) {
+                <option [value]="room.id">Chambre {{ room.roomNumber }} - {{ room.type }} ({{ room.price }} MRU/jour)</option>
+              }
+            </select>
+            @if (addForm.get('roomId')?.invalid && addForm.get('roomId')?.touched) {
+              <p class="font-sans text-xs text-error mt-2">Requis</p>
+            }
+          </div>
+
+          <div>
+            <label class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">Statut</label>
+            <select formControlName="status"
+              class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm focus:outline-none focus:border-charcoal transition-colors duration-300">
+              @for (status of statuses; track status) {
+                <option [value]="status">{{ getStatusLabel(status) }}</option>
+              }
+            </select>
+            @if (addForm.get('status')?.invalid && addForm.get('status')?.touched) {
+              <p class="font-sans text-xs text-error mt-2">Requis</p>
+            }
+          </div>
+
+          @if (selectedRoom()) {
+            <div>
+              <label class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">Selectionner les dates</label>
+              <div class="bg-cream/30 border border-linen p-4 rounded">
+                <div class="flex items-center justify-between mb-4">
+                  <button
+                    type="button"
+                    (click)="previousMonth()"
+                    class="p-2 rounded hover:bg-cream/50 transition-colors duration-300"
+                  >
+                    <svg class="w-5 h-5 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <h3 class="font-serif text-lg text-charcoal capitalize">{{ getMonthName() }}</h3>
+                  <button
+                    type="button"
+                    (click)="nextMonth()"
+                    class="p-2 rounded hover:bg-cream/50 transition-colors duration-300"
+                  >
+                    <svg class="w-5 h-5 text-charcoal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-7 gap-1 mb-2">
+                  <div class="text-center font-sans text-xs tracking-[0.1em] uppercase text-stone py-2">Lun</div>
+                  <div class="text-center font-sans text-xs tracking-[0.1em] uppercase text-stone py-2">Mar</div>
+                  <div class="text-center font-sans text-xs tracking-[0.1em] uppercase text-stone py-2">Mer</div>
+                  <div class="text-center font-sans text-xs tracking-[0.1em] uppercase text-stone py-2">Jeu</div>
+                  <div class="text-center font-sans text-xs tracking-[0.1em] uppercase text-stone py-2">Ven</div>
+                  <div class="text-center font-sans text-xs tracking-[0.1em] uppercase text-stone py-2">Sam</div>
+                  <div class="text-center font-sans text-xs tracking-[0.1em] uppercase text-stone py-2">Dim</div>
+                </div>
+
+                <div class="grid grid-cols-7 gap-1">
+                  @for (day of getCalendarDays(); track day.getTime()) {
+                    <button
+                      type="button"
+                      (click)="selectDate(day)"
+                      [disabled]="isDateDisabled(day)"
+                      [class]="'aspect-square p-2 text-sm font-sans transition-all duration-300 rounded ' +
+                        (isDateDisabled(day)
+                          ? 'text-sand/40 cursor-not-allowed'
+                          : isDateSelected(day)
+                          ? 'bg-taupe text-cream'
+                          : isDateInRange(day)
+                          ? 'bg-taupe/30 text-taupe'
+                          : day.getMonth() !== calendarDate().getMonth()
+                          ? 'text-sand/50'
+                          : 'text-charcoal hover:bg-cream/30')"
+                    >
+                      {{ day.getDate() }}
+                    </button>
+                  }
+                </div>
+
+                <div class="mt-4 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-taupe rounded"></div>
+                    <span class="font-sans text-xs text-stone">Date selectionnee</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-taupe/30 rounded"></div>
+                    <span class="font-sans text-xs text-stone">Periode selectionnee</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-sand/40 rounded"></div>
+                    <span class="font-sans text-xs text-stone">Date indisponible</span>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" formControlName="startDate" />
+              <input type="hidden" formControlName="endDate" />
+              @if (addForm.get('startDate')?.invalid && addForm.get('startDate')?.touched) {
+                <p class="font-sans text-xs text-error mt-2">Date de debut requise</p>
+              }
+              @if (addForm.get('endDate')?.invalid && addForm.get('endDate')?.touched) {
+                <p class="font-sans text-xs text-error mt-2">Date de fin requise</p>
+              }
+            </div>
+
+            @if (totalPrice() > 0) {
+              <div class="bg-cream/50 border border-linen p-4">
+                <div class="flex justify-between font-sans text-sm text-stone">
+                  <span>Prix par jour</span>
+                  <span class="font-serif text-charcoal">{{ selectedRoom()?.price }} MRU</span>
+                </div>
+                <div class="flex justify-between font-sans text-sm text-stone pt-3 border-t border-linen mt-3">
+                  <span class="font-medium">Prix total</span>
+                  <span class="font-serif text-lg text-gold font-medium">{{ totalPrice() }} MRU</span>
+                </div>
+              </div>
+            }
+          }
+
+          <div class="flex gap-4 pt-2">
+            <button type="button" (click)="closeBookingModal()"
+              class="flex-1 py-3 font-sans text-xs tracking-[0.12em] uppercase border border-sand text-stone hover:border-charcoal hover:text-charcoal transition-all duration-300">
+              Annuler
+            </button>
+            <button type="submit" [disabled]="loading()"
+              class="flex-1 py-3 font-sans text-xs tracking-[0.12em] uppercase bg-taupe text-cream hover:bg-taupe/90 transition-all duration-500 disabled:opacity-40">
+              @if (loading()) {
+                <span class="flex items-center justify-center gap-2">
+                  <span class="w-3.5 h-3.5 border border-cream/40 border-t-cream rounded-full animate-spin"></span>
+                  {{ modalMode() === 'add' ? 'Ajout...' : 'Modification...' }}
+                </span>
+              } @else {
+                {{ modalMode() === 'add' ? 'Ajouter' : 'Modifier' }}
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+
+<!-- Delete Modal -->
+@if (showDeleteModal()) {
+  <div class="fixed inset-0 bg-black/10 flex items-center justify-center z-50 p-4" (click)="closeDeleteModal()">
+    <div class="bg-ivory w-full max-w-md" (click)="$event.stopPropagation()">
+      <div class="p-8">
+        <h2 class="font-serif text-2xl font-light text-charcoal mb-3">Confirmer la suppression</h2>
+        <p class="font-sans text-sm text-stone font-light mb-6">Cette action est irreversible.</p>
+
+        <div class="bg-error/5 border border-error/20 p-4 mb-8">
+          <p class="font-sans text-sm text-charcoal">
+            Etes-vous sur de vouloir supprimer la reservation de <span class="font-medium">{{ bookingToDelete()?.user ? getUserName(bookingToDelete()!) : 'N/A' }}</span> pour la chambre <span class="font-medium">{{ bookingToDelete()?.room?.roomNumber || 'N/A' }}</span> ?
+          </p>
+        </div>
+
+        <div class="flex gap-4">
+          <button type="button" (click)="closeDeleteModal()" [disabled]="loading()"
+            class="flex-1 py-3 font-sans text-xs tracking-[0.12em] uppercase border border-sand text-stone hover:border-charcoal hover:text-charcoal transition-all duration-300 disabled:opacity-40">
+            Annuler
+          </button>
+          <button type="button" (click)="confirmDelete()" [disabled]="loading()"
+            class="flex-1 py-3 font-sans text-xs tracking-[0.12em] uppercase bg-error text-cream hover:bg-error/90 transition-all duration-500 disabled:opacity-40">
+            @if (loading()) {
+              <span class="flex items-center justify-center gap-2">
+                <span class="w-3.5 h-3.5 border border-cream/40 border-t-cream rounded-full animate-spin"></span>
+                Suppression...
+              </span>
+            } @else {
+              Supprimer
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

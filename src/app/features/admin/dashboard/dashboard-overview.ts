@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService } from '../../../core/services/admin.service';
-import type { User, Room } from '../../../shared/types';
+import type { AdminBookingAnalysis } from '../../../shared/types';
 
 @Component({
   selector: 'app-dashboard-overview',
@@ -13,32 +13,18 @@ import type { User, Room } from '../../../shared/types';
 export class DashboardOverviewComponent implements OnInit {
   private adminService = inject(AdminService);
 
-  users = signal<User[]>([]);
-  rooms = signal<Room[]>([]);
+  analysis = signal<AdminBookingAnalysis | null>(null);
   loading = signal(false);
 
   ngOnInit(): void {
-    this.loadData();
+    this.loadAnalysis();
   }
 
-  loadData(): void {
+  loadAnalysis(): void {
     this.loading.set(true);
-    
-    this.adminService.getAllUsers().subscribe({
-      next: (users) => {
-        this.users.set(users);
-        this.loadRooms();
-      },
-      error: () => {
-        this.loading.set(false);
-      },
-    });
-  }
-
-  loadRooms(): void {
-    this.adminService.getAllRooms().subscribe({
-      next: (rooms) => {
-        this.rooms.set(rooms);
+    this.adminService.getBookingAnalysis().subscribe({
+      next: (analysis) => {
+        this.analysis.set(analysis);
         this.loading.set(false);
       },
       error: () => {
@@ -48,18 +34,24 @@ export class DashboardOverviewComponent implements OnInit {
   }
 
   getTotalUsers(): number {
-    return this.users().length;
+    return this.analysis()?.totalUsers || 0;
   }
 
   getTotalRooms(): number {
-    return this.rooms().length;
+    return this.analysis()?.totalRooms || 0;
+  }
+
+  getReservedRooms(): number {
+    return this.analysis()?.reservedRooms || 0;
+  }
+
+  getTotalBookings(): number {
+    return this.analysis()?.totalBookings || 0;
   }
 
   getAvailableRooms(): number {
-    return this.rooms().filter(room => room.available).length;
-  }
-
-  getOccupiedRooms(): number {
-    return this.rooms().filter(room => !room.available).length;
+    const total = this.getTotalRooms();
+    const reserved = this.getReservedRooms();
+    return Math.max(0, total - reserved);
   }
 }
