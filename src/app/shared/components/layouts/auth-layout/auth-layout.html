@@ -1,5 +1,26 @@
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-  <div class="w-full max-w-md">
-    <router-outlet />
+<div class="min-h-screen bg-ivory flex">
+  <!-- Left: Branding Panel -->
+  <div class="hidden lg:flex lg:w-1/2 bg-charcoal relative items-center justify-center">
+    <div class="absolute inset-0 bg-gradient-to-br from-charcoal via-[#3D3835] to-[#4A3F3A]"></div>
+    <div class="relative text-center px-12">
+      <p class="font-sans text-xs tracking-[0.3em] uppercase text-sand/60 mb-6">Bienvenue</p>
+      <h1 class="font-serif text-6xl xl:text-7xl font-light text-white tracking-wide mb-6">Tamanokt</h1>
+      <div class="w-16 h-px bg-sand/40 mx-auto mb-6"></div>
+      <p class="font-sans text-sm text-sand/50 font-light leading-relaxed max-w-sm mx-auto">
+        Un refuge d'elegance ou chaque detail est pense pour votre confort.
+      </p>
+    </div>
+  </div>
+
+  <!-- Right: Form Area -->
+  <div class="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-md">
+      <!-- Mobile logo -->
+      <div class="lg:hidden text-center mb-12">
+        <h1 class="font-serif text-3xl tracking-[0.2em] uppercase text-charcoal">Tamanokt</h1>
+        <div class="w-12 h-px bg-sand mx-auto mt-4"></div>
+      </div>
+      <router-outlet />
+    </div>
   </div>
 </div>

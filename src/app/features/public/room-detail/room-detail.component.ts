@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PublicService } from '../../../core/services/public.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { UserRole } from '../../../core/constants/api.constants';
+import { environment } from '../../../../environments/environment';
 import type { Room } from '../../../shared/types';
 
 @Component({
@@ -10,95 +12,152 @@ import type { Room } from '../../../shared/types';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="container mx-auto px-4 py-8">
-      <!-- Back Button -->
-      <button (click)="goBack()"
-              class="mb-4 flex items-center text-blue-600 hover:text-blue-800">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-        </svg>
-        Back to Rooms
-      </button>
+    <div class="min-h-screen bg-ivory">
+      <!-- Navbar -->
+      <nav class="bg-ivory border-b border-sand/30">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex justify-between items-center">
+          <a routerLink="/" class="font-serif text-2xl tracking-[0.2em] uppercase text-charcoal">Tamanokt</a>
 
-      <!-- Loading State -->
+          <div class="hidden md:flex items-center gap-10">
+            <a routerLink="/"
+               class="text-xs font-sans tracking-[0.15em] uppercase text-stone hover:text-charcoal transition-colors duration-300">
+              Accueil
+            </a>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <ng-container *ngIf="!isAuthenticated()">
+              <a routerLink="/auth/login"
+                 class="hidden md:inline-block text-xs font-sans tracking-[0.12em] uppercase px-5 py-2.5 border border-charcoal text-charcoal hover:bg-charcoal hover:text-ivory transition-all duration-300">
+                Connexion
+              </a>
+            </ng-container>
+            <ng-container *ngIf="isAuthenticated()">
+              <a [routerLink]="dashboardLink()"
+                 class="hidden md:inline-block text-xs font-sans tracking-[0.12em] uppercase px-5 py-2.5 border border-charcoal text-charcoal hover:bg-charcoal hover:text-ivory transition-all duration-300">
+                Mon Espace
+              </a>
+            </ng-container>
+
+            <!-- Hamburger (mobile) -->
+            <button (click)="mobileMenuOpen = !mobileMenuOpen"
+                    class="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-[5px]"
+                    aria-label="Menu">
+              <span class="block w-5 h-[1.5px] bg-charcoal transition-all duration-300 origin-center"
+                    [class]="mobileMenuOpen ? 'rotate-45 translate-y-[6.5px]' : ''"></span>
+              <span class="block w-5 h-[1.5px] bg-charcoal transition-all duration-300"
+                    [class]="mobileMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100'"></span>
+              <span class="block w-5 h-[1.5px] bg-charcoal transition-all duration-300 origin-center"
+                    [class]="mobileMenuOpen ? '-rotate-45 -translate-y-[6.5px]' : ''"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden overflow-hidden transition-all duration-500 ease-out bg-ivory"
+             [class]="mobileMenuOpen ? 'max-h-[300px] opacity-100' : 'max-h-0 opacity-0'">
+          <div class="px-6 py-8 flex flex-col items-center gap-6">
+            <a routerLink="/" (click)="mobileMenuOpen = false"
+               class="text-xs font-sans tracking-[0.15em] uppercase text-stone hover:text-charcoal transition-colors duration-300">
+              Accueil
+            </a>
+            <div class="w-12 border-t border-sand/40 mt-2 mb-2"></div>
+            <ng-container *ngIf="!isAuthenticated()">
+              <a routerLink="/auth/login" (click)="mobileMenuOpen = false"
+                 class="text-xs font-sans tracking-[0.12em] uppercase px-8 py-3 border border-charcoal text-charcoal hover:bg-charcoal hover:text-ivory transition-all duration-300">
+                Connexion
+              </a>
+            </ng-container>
+            <ng-container *ngIf="isAuthenticated()">
+              <a [routerLink]="dashboardLink()" (click)="mobileMenuOpen = false"
+                 class="text-xs font-sans tracking-[0.12em] uppercase px-8 py-3 border border-charcoal text-charcoal hover:bg-charcoal hover:text-ivory transition-all duration-300">
+                Mon Espace
+              </a>
+            </ng-container>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Loading -->
       <div *ngIf="loading()" class="flex justify-center items-center h-64">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div class="w-8 h-8 border border-sand border-t-taupe rounded-full animate-spin"></div>
       </div>
 
-      <!-- Error State -->
-      <div *ngIf="error()" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-        {{ error() }}
+      <!-- Error -->
+      <div *ngIf="error()" class="max-w-6xl mx-auto px-6 lg:px-12 py-8">
+        <div class="py-3 px-4 border border-error/30 bg-error/5">
+          <p class="font-sans text-sm text-error">{{ error() }}</p>
+        </div>
       </div>
 
       <!-- Room Details -->
-      <div *ngIf="room() && !loading()" class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Room Image -->
-          <div class="h-96 lg:h-auto">
-            <img [src]="room()!.imageUrl || '/assets/default-room.jpg'"
-                 [alt]="'Room ' + room()!.roomNumber"
+      <div *ngIf="room() && !loading()" class="max-w-6xl mx-auto px-6 lg:px-12 py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Image -->
+          <div class="h-[28rem] lg:h-auto overflow-hidden">
+            <img [src]="getRoomImageUrl(room()!)"
+                 [alt]="'Chambre ' + room()!.roomNumber"
                  class="w-full h-full object-cover">
           </div>
 
-          <!-- Room Information -->
-          <div class="p-6">
+          <!-- Info -->
+          <div class="py-2">
             <div class="flex justify-between items-start mb-4">
-              <h1 class="text-3xl font-bold text-gray-800">Room {{ room()!.roomNumber }}</h1>
-              <span [class]="'px-3 py-1 text-sm font-semibold rounded ' +
-                            (room()!.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')">
-                {{ room()!.available ? 'Available' : 'Occupied' }}
+              <h1 class="font-serif text-4xl font-light text-charcoal">Chambre {{ room()!.roomNumber }}</h1>
+              <span class="px-3 py-1 font-sans text-xs tracking-[0.05em] uppercase"
+                    [class]="room()!.available ? 'bg-success/10 text-success' : 'bg-error/10 text-error'">
+                {{ room()!.available ? 'Disponible' : 'Occupee' }}
               </span>
             </div>
 
-            <p class="text-xl text-gray-600 mb-4">{{ room()!.type }}</p>
-            <p class="text-gray-700 mb-6">{{ room()!.description }}</p>
+            <p class="font-sans text-xs tracking-[0.1em] uppercase text-stone mb-4">{{ room()!.type }}</p>
+            <p class="font-sans text-sm text-stone font-light leading-relaxed mb-8">{{ room()!.description }}</p>
 
-            <div class="border-t pt-4 mb-6">
-              <p class="text-3xl font-bold text-blue-600 mb-2">${{ room()!.price }}/night</p>
+            <div class="border-t border-linen pt-6 mb-8">
+              <p class="font-serif text-3xl text-gold">{{ room()!.price }} MRU <span class="font-sans text-xs text-stone font-light tracking-wide">/ nuit</span></p>
             </div>
 
-            <!-- Reserved Dates Section -->
-            <div class="border-t pt-4 mb-6">
-              <h3 class="text-lg font-semibold text-gray-800 mb-3">Reserved Dates</h3>
+            <!-- Reserved Dates -->
+            <div class="border-t border-linen pt-6 mb-8">
+              <h3 class="font-serif text-xl text-charcoal mb-4">Dates reservees</h3>
 
-              <div *ngIf="loadingDates()" class="text-gray-500">
-                Loading reserved dates...
+              <div *ngIf="loadingDates()" class="font-sans text-sm text-stone font-light">
+                Chargement des dates...
               </div>
 
-              <div *ngIf="!loadingDates() && reservedDates().length === 0" class="text-green-600">
-                No reservations - All dates are available!
+              <div *ngIf="!loadingDates() && reservedDates().length === 0">
+                <p class="font-sans text-sm text-success font-light">Toutes les dates sont disponibles</p>
               </div>
 
-              <div *ngIf="!loadingDates() && reservedDates().length > 0" class="space-y-2">
-                <p class="text-sm text-gray-600 mb-2">This room is reserved on the following dates:</p>
+              <div *ngIf="!loadingDates() && reservedDates().length > 0">
+                <p class="font-sans text-sm text-stone font-light mb-3">Cette chambre est reservee aux dates suivantes :</p>
                 <div class="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
                   <span *ngFor="let date of reservedDates()"
-                        class="px-2 py-1 bg-red-50 text-red-700 text-sm rounded">
+                        class="px-3 py-1.5 bg-error/5 border border-error/15 font-sans text-xs text-error text-center">
                     {{ formatDate(date) }}
                   </span>
                 </div>
               </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Actions -->
             <div class="flex gap-4">
               <button *ngIf="room()!.available && isAuthenticated()"
                       (click)="bookRoom()"
-                      class="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200">
-                Book Now
+                      class="flex-1 py-4 font-sans text-xs tracking-[0.15em] uppercase bg-taupe text-cream hover:bg-taupe/90 transition-all duration-500">
+                Reserver maintenant
               </button>
 
               <button *ngIf="room()!.available && !isAuthenticated()"
                       (click)="navigateToLogin()"
-                      class="flex-1 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-200">
-                Login to Book
+                      class="flex-1 py-4 font-sans text-xs tracking-[0.15em] uppercase border border-charcoal text-charcoal hover:bg-charcoal hover:text-ivory transition-all duration-500">
+                Se connecter pour reserver
               </button>
 
               <button *ngIf="!room()!.available"
                       disabled
-                      class="flex-1 bg-gray-300 text-gray-500 px-6 py-3 rounded-lg cursor-not-allowed">
-                Not Available
+                      class="flex-1 py-4 font-sans text-xs tracking-[0.15em] uppercase bg-sand/30 text-stone cursor-not-allowed">
+                Non disponible
               </button>
             </div>
           </div>
@@ -107,9 +166,7 @@ import type { Room } from '../../../shared/types';
     </div>
   `,
   styles: [`
-    :host {
-      display: block;
-    }
+    :host { display: block; }
   `]
 })
 export class RoomDetailComponent implements OnInit {
@@ -123,6 +180,7 @@ export class RoomDetailComponent implements OnInit {
   loading = signal(false);
   loadingDates = signal(false);
   error = signal<string | null>(null);
+  mobileMenuOpen = false;
 
   ngOnInit() {
     const roomId = this.route.snapshot.paramMap.get('id');
@@ -192,6 +250,17 @@ export class RoomDetailComponent implements OnInit {
     return this.authService.isAuthenticated();
   }
 
+  dashboardLink(): string {
+    const user = this.authService.getCurrentUser();
+    if (!user) return '/';
+    switch (user.role) {
+      case UserRole.ADMIN: return '/admin/dashboard';
+      case UserRole.RECEPTION: return '/reception/dashboard';
+      case UserRole.USER: return '/client/dashboard';
+      default: return '/';
+    }
+  }
+
   bookRoom() {
     if (this.room()) {
       this.router.navigate(['/client/book-room', this.room()!.id]);
@@ -204,15 +273,21 @@ export class RoomDetailComponent implements OnInit {
     });
   }
 
+  getRoomImageUrl(room: Room): string {
+    if (!room.imageUrl) return '/assets/default-room.jpg';
+    if (room.imageUrl.startsWith('http')) return room.imageUrl;
+    return `${environment.apiUrl}${room.imageUrl}`;
+  }
+
   goBack() {
-    this.router.navigate(['/rooms']);
+    this.router.navigate(['/']);
   }
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
+    return date.toLocaleDateString('fr-FR', {
       day: 'numeric',
+      month: 'short',
       year: 'numeric'
     });
   }

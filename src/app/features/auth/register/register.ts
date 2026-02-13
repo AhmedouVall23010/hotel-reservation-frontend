@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractContro
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 import type { RegisterRequest } from '../../../shared/types';
 
 @Component({
@@ -16,10 +17,10 @@ export class Register {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   registerForm: FormGroup;
   isLoading = signal(false);
-  errorMessage = signal<string | null>(null);
 
   constructor() {
     this.registerForm = this.fb.group(
@@ -52,7 +53,6 @@ export class Register {
     }
 
     this.isLoading.set(true);
-    this.errorMessage.set(null);
 
     const data: RegisterRequest = {
       nom: this.registerForm.value.nom,
@@ -67,7 +67,7 @@ export class Register {
       },
       error: (error: string) => {
         this.isLoading.set(false);
-        this.errorMessage.set(error);
+        this.toastService.error(error);
       },
     });
   }

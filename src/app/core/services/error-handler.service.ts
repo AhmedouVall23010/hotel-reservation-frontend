@@ -1,10 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ToastService } from './toast.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ErrorHandlerService {
+  private toastService = inject(ToastService);
+
   handleError(error: HttpErrorResponse): string {
     if (error.status === 0) {
       return 'Erreur de connexion';
@@ -28,5 +31,11 @@ export class ErrorHandlerService {
       default:
         return 'Erreur inattendue';
     }
+  }
+
+  handleErrorWithToast(error: HttpErrorResponse): string {
+    const message = this.handleError(error);
+    this.toastService.error(message);
+    return message;
   }
 }

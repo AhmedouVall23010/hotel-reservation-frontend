@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { environment } from '../../../../environments/environment';
 import type { Room, AdminAddRoomRequest, AdminUpdateRoomRequest } from '../../../shared/types';
 
@@ -15,6 +16,7 @@ import type { Room, AdminAddRoomRequest, AdminUpdateRoomRequest } from '../../..
 export class RoomsComponent implements OnInit {
   private adminService = inject(AdminService);
   private fb = inject(FormBuilder);
+  private toastService = inject(ToastService);
 
   rooms = signal<Room[]>([]);
   loading = signal(false);
@@ -23,7 +25,6 @@ export class RoomsComponent implements OnInit {
   showDeleteModal = signal(false);
   selectedRoom = signal<Room | null>(null);
   roomToDelete = signal<Room | null>(null);
-  actionStatus = signal<'idle' | 'success' | 'error'>('idle');
 
   addForm: FormGroup;
   editForm: FormGroup;
@@ -67,6 +68,7 @@ export class RoomsComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
+        this.toastService.error('Impossible de charger les chambres');
       },
     });
   }
@@ -76,7 +78,6 @@ export class RoomsComponent implements OnInit {
       type: 'Standard',
     });
     this.showAddModal.set(true);
-    this.actionStatus.set('idle');
   }
 
   closeAddModal(): void {
@@ -95,7 +96,6 @@ export class RoomsComponent implements OnInit {
     });
     this.editForm.get('type')?.setValue(room.type);
     this.showEditModal.set(true);
-    this.actionStatus.set('idle');
   }
 
   closeEditModal(): void {
@@ -135,14 +135,12 @@ export class RoomsComponent implements OnInit {
 
     this.adminService.addRoom(roomData).subscribe({
       next: () => {
-        this.actionStatus.set('success');
+        this.toastService.success('Chambre ajoutee avec succes');
         this.loadRooms();
-        setTimeout(() => {
-          this.closeAddModal();
-        }, 1000);
+        this.closeAddModal();
       },
       error: () => {
-        this.actionStatus.set('error');
+        this.toastService.error("Erreur lors de l'ajout de la chambre");
         this.loading.set(false);
       },
     });
@@ -164,14 +162,12 @@ export class RoomsComponent implements OnInit {
 
     this.adminService.updateRoom(this.selectedRoom()!.id, roomData).subscribe({
       next: () => {
-        this.actionStatus.set('success');
+        this.toastService.success('Chambre modifiee avec succes');
         this.loadRooms();
-        setTimeout(() => {
-          this.closeEditModal();
-        }, 1000);
+        this.closeEditModal();
       },
       error: () => {
-        this.actionStatus.set('error');
+        this.toastService.error('Erreur lors de la modification de la chambre');
         this.loading.set(false);
       },
     });
@@ -197,9 +193,11 @@ export class RoomsComponent implements OnInit {
         this.rooms.update(rooms => rooms.filter(r => r.id !== room.id));
         this.closeDeleteModal();
         this.loading.set(false);
+        this.toastService.success('Chambre supprimee avec succes');
       },
       error: () => {
         this.loading.set(false);
+        this.toastService.error('Erreur lors de la suppression de la chambre');
       },
     });
   }
@@ -209,17 +207,19 @@ export class RoomsComponent implements OnInit {
     this.adminService.changeRoomStatus(room.id).subscribe({
       next: () => {
         this.loadRooms();
+        this.toastService.success(room.available ? 'Chambre desactivee' : 'Chambre activee');
       },
       error: () => {
         this.loading.set(false);
+        this.toastService.error('Erreur lors du changement de statut');
       },
     });
   }
 
   getStatusBadgeClass(available: boolean): string {
     return available
-      ? 'bg-green-100 text-green-800'
-      : 'bg-red-100 text-red-800';
+      ? 'bg-success/90 text-cream'
+      : 'bg-error/90 text-cream';
   }
 
   getStatusLabel(available: boolean): string {

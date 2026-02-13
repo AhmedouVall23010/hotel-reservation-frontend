@@ -43,7 +43,7 @@ import type { Room } from '../../../shared/types';
             <p class="text-gray-700 text-sm mb-3">{{ room.description }}</p>
 
             <div class="flex justify-between items-center">
-              <span class="text-2xl font-bold text-blue-600">${{ room.price }}/night</span>
+              <span class="text-2xl font-bold text-blue-600">\${{ room.price }}/night</span>
               <button [routerLink]="['/room', room.id]"
                       [disabled]="!room.available"
                       [class]="'px-4 py-2 rounded transition-colors duration-200 ' +

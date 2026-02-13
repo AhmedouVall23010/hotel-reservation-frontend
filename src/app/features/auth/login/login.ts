@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 import type { LoginRequest } from '../../../shared/types';
 
 @Component({
@@ -17,11 +18,10 @@ export class Login {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private toastService = inject(ToastService);
 
   loginForm: FormGroup;
   isLoading = signal(false);
-  errorMessage = signal<string | null>(null);
-  showSuccessMessage = signal(false);
 
   constructor() {
     this.loginForm = this.fb.group({
@@ -31,8 +31,7 @@ export class Login {
 
     this.route.queryParams.subscribe((params) => {
       if (params['registered'] === 'true') {
-        this.showSuccessMessage.set(true);
-        setTimeout(() => this.showSuccessMessage.set(false), 5000);
+        this.toastService.success('Inscription reussie ! Veuillez vous connecter.');
       }
     });
   }
@@ -44,7 +43,6 @@ export class Login {
     }
 
     this.isLoading.set(true);
-    this.errorMessage.set(null);
 
     const credentials: LoginRequest = {
       email: this.loginForm.value.email,
@@ -57,7 +55,7 @@ export class Login {
       },
       error: (error: string) => {
         this.isLoading.set(false);
-        this.errorMessage.set(error);
+        this.toastService.error(error);
       },
     });
   }

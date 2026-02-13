@@ -55,11 +55,11 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: '/loading',
+    loadComponent: () => import('./features/public/landing/landing.component').then(m => m.LandingComponent),
     pathMatch: 'full',
   },
   {
     path: '**',
-    redirectTo: '/loading',
+    redirectTo: '/',
   },
 ];

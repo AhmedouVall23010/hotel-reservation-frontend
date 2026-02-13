@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClientService } from '../../../core/services/client.service';
+import { PublicService } from '../../../core/services/public.service';
 import type { Booking, Room } from '../../../shared/types';
 import { BookingStatus } from '../../../core/constants/api.constants';
 
@@ -13,6 +14,7 @@ import { BookingStatus } from '../../../core/constants/api.constants';
 })
 export class DashboardOverviewComponent implements OnInit {
   private clientService = inject(ClientService);
+  private publicService = inject(PublicService);
 
   availableRooms = signal<Room[]>([]);
   myBookings = signal<Booking[]>([]);
@@ -26,10 +28,10 @@ export class DashboardOverviewComponent implements OnInit {
 
   loadData(): void {
     this.loading.set(true);
-    
-    this.clientService.getAllRooms().subscribe({
-      next: (rooms) => {
-        this.availableRooms.set(rooms.filter(r => r.available));
+
+    this.publicService.getAllRooms().subscribe({
+      next: (rooms: Room[]) => {
+        this.availableRooms.set(rooms.filter((r: Room) => r.available));
         this.loadBookings();
       },
       error: () => {

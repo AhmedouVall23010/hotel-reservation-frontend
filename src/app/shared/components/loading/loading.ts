@@ -43,10 +43,10 @@ export class Loading implements OnInit {
           this.router.navigate(['/client/dashboard'], { replaceUrl: true });
           break;
         default:
-          this.router.navigate(['/auth/login'], { replaceUrl: true });
+          this.router.navigate(['/'], { replaceUrl: true });
       }
     } else {
-      this.router.navigate(['/auth/login'], { replaceUrl: true });
+      this.router.navigate(['/'], { replaceUrl: true });
     }
   }
 }

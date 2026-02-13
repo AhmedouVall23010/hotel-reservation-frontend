@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { getApiUrl } from '../constants/api.constants';
 import type { Room } from '../../shared/types';
@@ -21,7 +21,7 @@ export class PublicService {
     return this.http.get<Room[]>(getApiUrl('/rooms')).pipe(
       catchError((error) => {
         console.error('Error fetching rooms:', error);
-        return this.errorHandler.handleError(error);
+        return throwError(() => error);
       })
     );
   }
@@ -34,7 +34,7 @@ export class PublicService {
     return this.http.get<string[]>(getApiUrl(`/rooms/dates-reserved/${roomId}`)).pipe(
       catchError((error) => {
         console.error(`Error fetching reserved dates for room ${roomId}:`, error);
-        return this.errorHandler.handleError(error);
+        return throwError(() => error);
       })
     );
   }
@@ -47,7 +47,7 @@ export class PublicService {
     return this.http.get<Room>(getApiUrl(`/rooms/${roomId}`)).pipe(
       catchError((error) => {
         console.error(`Error fetching room details for room ${roomId}:`, error);
-        return this.errorHandler.handleError(error);
+        return throwError(() => error);
       })
     );
   }

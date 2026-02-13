@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClientService } from '../../../core/services/client.service';
 import { PublicService } from '../../../core/services/public.service';
+import { ToastService } from '../../../core/services/toast.service';
 import type { Room, ClientAddBookingRequest } from '../../../shared/types';
 
 @Component({
@@ -19,18 +20,13 @@ import type { Room, ClientAddBookingRequest } from '../../../shared/types';
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
 
-      <!-- Error State -->
-      <div *ngIf="error()" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-        {{ error() }}
-      </div>
-
       <!-- Booking Form -->
       <div *ngIf="room() && !loading()" class="bg-white rounded-lg shadow-lg p-6">
         <!-- Room Summary -->
         <div class="mb-6 pb-6 border-b">
           <h2 class="text-xl font-semibold mb-2">Room {{ room()!.roomNumber }}</h2>
           <p class="text-gray-600">{{ room()!.type }}</p>
-          <p class="text-2xl font-bold text-blue-600 mt-2">${{ room()!.price }}/night</p>
+          <p class="text-2xl font-bold text-blue-600 mt-2">\${{ room()!.price }}/night</p>
         </div>
 
         <!-- Date Selection -->
@@ -100,7 +96,7 @@ import type { Room, ClientAddBookingRequest } from '../../../shared/types';
             </div>
             <div class="flex justify-between pt-2 border-t text-lg font-semibold">
               <span>Total Price:</span>
-              <span class="text-blue-600">${{ calculateTotalPrice() }}</span>
+              <span class="text-blue-600">\${{ calculateTotalPrice() }}</span>
             </div>
           </div>
         </div>
@@ -136,12 +132,12 @@ export class BookRoomComponent implements OnInit {
   private publicService = inject(PublicService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private toastService = inject(ToastService);
 
   room = signal<Room | null>(null);
   reservedDates = signal<string[]>([]);
   loading = signal(false);
   submitting = signal(false);
-  error = signal<string | null>(null);
   dateValidationError = signal<string | null>(null);
 
   startDate: string = '';
@@ -159,13 +155,12 @@ export class BookRoomComponent implements OnInit {
     if (roomId) {
       this.loadRoomAndReservedDates(+roomId);
     } else {
-      this.error.set('Invalid room ID');
+      this.toastService.error('Identifiant de chambre invalide');
     }
   }
 
   loadRoomAndReservedDates(roomId: number) {
     this.loading.set(true);
-    this.error.set(null);
 
     // Load room details and reserved dates in parallel
     Promise.all([
@@ -175,7 +170,7 @@ export class BookRoomComponent implements OnInit {
       this.loading.set(false);
     }).catch((err) => {
       console.error('Error loading data:', err);
-      this.error.set('Failed to load room information');
+      this.toastService.error('Impossible de charger les informations de la chambre');
       this.loading.set(false);
     });
   }
@@ -270,7 +265,6 @@ export class BookRoomComponent implements OnInit {
     if (!this.canBook()) return;
 
     this.submitting.set(true);
-    this.error.set(null);
 
     const bookingRequest: ClientAddBookingRequest = {
       roomId: this.room()!.id,
@@ -290,7 +284,7 @@ export class BookRoomComponent implements OnInit {
       });
     } catch (error: any) {
       console.error('Booking failed:', error);
-      this.error.set(error.message || 'Failed to create booking. Please try again.');
+      this.toastService.error(error.message || 'Erreur lors de la creation de la reservation');
       this.submitting.set(false);
 
       // Reload reserved dates in case they changed
