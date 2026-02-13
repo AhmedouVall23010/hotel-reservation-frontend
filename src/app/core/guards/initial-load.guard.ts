@@ -29,6 +29,6 @@ export const initialLoadGuard: CanActivateFn = () => {
     }
   }
 
-  router.navigateByUrl('/auth/login', { replaceUrl: true });
+  router.navigateByUrl('/', { replaceUrl: true });
   return false;
 };

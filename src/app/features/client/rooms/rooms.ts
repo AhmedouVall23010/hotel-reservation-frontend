@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ClientService } from '../../../core/services/client.service';
+import { PublicService } from '../../../core/services/public.service';
 import { environment } from '../../../../environments/environment';
 import type { Room, ClientAddBookingRequest } from '../../../shared/types';
 
@@ -14,6 +15,7 @@ import type { Room, ClientAddBookingRequest } from '../../../shared/types';
 })
 export class RoomsComponent implements OnInit {
   private clientService = inject(ClientService);
+  private publicService = inject(PublicService);
   private fb = inject(FormBuilder);
 
   rooms = signal<Room[]>([]);
@@ -37,9 +39,9 @@ export class RoomsComponent implements OnInit {
 
   loadRooms(): void {
     this.loading.set(true);
-    this.clientService.getAllRooms().subscribe({
-      next: (rooms) => {
-        this.rooms.set(rooms.filter(r => r.available));
+    this.publicService.getAllRooms().subscribe({
+      next: (rooms: Room[]) => {
+        this.rooms.set(rooms.filter((r: Room) => r.available));
         this.loading.set(false);
       },
       error: () => {

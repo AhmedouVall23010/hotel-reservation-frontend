@@ -1,6 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { ClientService } from '../../../core/services/client.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { BookingStatus } from '../../../core/constants/api.constants';
 import type { Booking, ClientChangeBookingStatusRequest } from '../../../shared/types';
 
@@ -13,6 +15,8 @@ import type { Booking, ClientChangeBookingStatusRequest } from '../../../shared/
 })
 export class BookingsComponent implements OnInit {
   private clientService = inject(ClientService);
+  private toastService = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   bookings = signal<Booking[]>([]);
   loading = signal(false);
@@ -21,6 +25,11 @@ export class BookingsComponent implements OnInit {
   BookingStatus = BookingStatus;
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['success']) {
+        this.toastService.success('Reservation creee avec succes');
+      }
+    });
     this.loadBookings();
   }
 
@@ -33,6 +42,7 @@ export class BookingsComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
+        this.toastService.error('Impossible de charger vos reservations');
       },
     });
   }
@@ -60,10 +70,12 @@ export class BookingsComponent implements OnInit {
 
     this.clientService.changeBookingStatus(booking.id, request).subscribe({
       next: () => {
+        this.toastService.success('Reservation annulee avec succes');
         this.loadBookings();
       },
       error: () => {
         this.loading.set(false);
+        this.toastService.error("Erreur lors de l'annulation de la reservation");
       },
     });
   }
@@ -79,11 +91,11 @@ export class BookingsComponent implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     const classes: Record<string, string> = {
-      [BookingStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-      [BookingStatus.CONFIRMED]: 'bg-green-100 text-green-800',
-      [BookingStatus.CANCELLED]: 'bg-red-100 text-red-800',
+      [BookingStatus.PENDING]: 'bg-warning/10 text-warning',
+      [BookingStatus.CONFIRMED]: 'bg-success/10 text-success',
+      [BookingStatus.CANCELLED]: 'bg-error/10 text-error',
     };
-    return classes[status] || 'bg-gray-100 text-gray-800';
+    return classes[status] || 'bg-sand/20 text-stone';
   }
 
   formatDate(dateString: string): string {

@@ -19,6 +19,10 @@ export const routes: Routes = [
         loadComponent: () => import('./bookings/bookings').then(m => m.BookingsComponent),
       },
       {
+        path: 'book-room/:id',
+        loadComponent: () => import('./book-room/book-room.component').then(m => m.BookRoomComponent),
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',

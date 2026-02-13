@@ -1,18 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { getApiUrl, API_ENDPOINTS } from '../constants/api.constants';
-import type { Booking, ClientAddBookingRequest, ClientChangeBookingStatusRequest, Room } from '../../shared/types';
+import type { Booking, ClientAddBookingRequest, ClientChangeBookingStatusRequest } from '../../shared/types';
+import { PublicService } from './public.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ClientService {
   private http = inject(HttpClient);
+  private publicService = inject(PublicService);
 
-  getAllRooms(): Observable<Room[]> {
-    return this.http.get<Room[]>(getApiUrl(API_ENDPOINTS.ROOMS.GET_ALL));
-  }
+  // Note: getAllRooms has been moved to PublicService as it's a public endpoint
+  // Use publicService.getAllRooms() instead
 
   getAllBookings(): Observable<Booking[]> {
     return this.http.get<Booking[]>(getApiUrl(API_ENDPOINTS.CLIENT.GET_ALL_BOOKINGS));
@@ -24,5 +25,46 @@ export class ClientService {
 
   changeBookingStatus(bookingId: number, request: ClientChangeBookingStatusRequest): Observable<Booking> {
     return this.http.put<Booking>(getApiUrl(API_ENDPOINTS.CLIENT.CHANGE_BOOKING_STATUS(bookingId)), request);
+  }
+
+  /**
+   * Enhanced booking with date validation
+   * Checks reserved dates before creating a booking
+   */
+  async addBookingWithValidation(request: ClientAddBookingRequest): Promise<Booking> {
+    try {
+      // First check if dates are available
+      const reservedDates = await firstValueFrom(
+        this.publicService.getReservedDates(request.roomId)
+      );
+
+      // Validate dates don't conflict
+      if (this.datesConflict(request.startDate, request.endDate, reservedDates)) {
+        throw new Error('Selected dates are not available for this room');
+      }
+
+      // If validation passes, create the booking
+      return await firstValueFrom(this.addBooking(request));
+    } catch (error) {
+      console.error('Booking validation failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if requested dates conflict with existing reservations
+   */
+  private datesConflict(startDate: string, endDate: string, reservedDates: string[]): boolean {
+    if (!reservedDates || reservedDates.length === 0) {
+      return false;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    return reservedDates.some(dateStr => {
+      const reservedDate = new Date(dateStr);
+      return reservedDate >= start && reservedDate <= end;
+    });
   }
 }

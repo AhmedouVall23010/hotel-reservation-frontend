@@ -16,7 +16,7 @@ export function authInitializer(): () => Promise<void> {
     await authService.initializeAuth();
 
     const currentPath = window.location.pathname;
-    if (currentPath === '/' || currentPath === '') {
+    if (currentPath === '/loading') {
       router.navigate(['/loading'], { replaceUrl: true });
     }
   };

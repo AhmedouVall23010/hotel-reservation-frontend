@@ -1,76 +1,72 @@
-<div class="w-full max-w-md mx-auto">
-  <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">Créer un compte</h1>
-    <p class="text-gray-600">Remplissez les informations ci-dessous pour vous inscrire</p>
+<div class="w-full">
+  <div class="mb-10">
+    <h2 class="font-serif text-4xl font-light text-charcoal mb-3">Inscription</h2>
+    <p class="font-sans text-sm text-stone font-light">Creez votre compte pour commencer</p>
   </div>
 
-  @if (errorMessage()) {
-    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-      <p class="text-red-800 text-sm">{{ errorMessage() }}</p>
-    </div>
-  }
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-7">
+    <div class="grid grid-cols-2 gap-6">
+      <div>
+        <label for="nom" class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">
+          Nom
+        </label>
+        <input
+          id="nom"
+          type="text"
+          formControlName="nom"
+          class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm placeholder:text-sand focus:outline-none focus:border-charcoal transition-colors duration-300"
+          [class.border-error]="nom?.invalid && nom?.touched"
+          placeholder="Nom"
+        />
+        @if (nom?.invalid && nom?.touched) {
+          <p class="mt-2 font-sans text-xs text-error">
+            @if (nom?.errors?.['required']) {
+              Requis
+            } @else if (nom?.errors?.['minlength']) {
+              Min. 2 caracteres
+            }
+          </p>
+        }
+      </div>
 
-  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
-    <div>
-      <label for="nom" class="block text-sm font-medium text-gray-700 mb-2">
-        Nom
-      </label>
-      <input
-        id="nom"
-        type="text"
-        formControlName="nom"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        [class.border-red-500]="nom?.invalid && nom?.touched"
-        placeholder="Nom"
-      />
-      @if (nom?.invalid && nom?.touched) {
-        <p class="mt-1 text-sm text-red-600">
-          @if (nom?.errors?.['required']) {
-            Le nom est requis
-          } @else if (nom?.errors?.['minlength']) {
-            Le nom doit contenir au moins 2 caractères
-          }
-        </p>
-      }
-    </div>
-
-    <div>
-      <label for="prenom" class="block text-sm font-medium text-gray-700 mb-2">
-        Prénom
-      </label>
-      <input
-        id="prenom"
-        type="text"
-        formControlName="prenom"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        [class.border-red-500]="prenom?.invalid && prenom?.touched"
-        placeholder="Prénom"
-      />
-      @if (prenom?.invalid && prenom?.touched) {
-        <p class="mt-1 text-sm text-red-600">
-          @if (prenom?.errors?.['required']) {
-            Le prénom est requis
-          } @else if (prenom?.errors?.['minlength']) {
-            Le prénom doit contenir au moins 2 caractères
-          }
-        </p>
-      }
+      <div>
+        <label for="prenom" class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">
+          Prenom
+        </label>
+        <input
+          id="prenom"
+          type="text"
+          formControlName="prenom"
+          class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm placeholder:text-sand focus:outline-none focus:border-charcoal transition-colors duration-300"
+          [class.border-error]="prenom?.invalid && prenom?.touched"
+          placeholder="Prenom"
+        />
+        @if (prenom?.invalid && prenom?.touched) {
+          <p class="mt-2 font-sans text-xs text-error">
+            @if (prenom?.errors?.['required']) {
+              Requis
+            } @else if (prenom?.errors?.['minlength']) {
+              Min. 2 caracteres
+            }
+          </p>
+        }
+      </div>
     </div>
 
     <div>
-      <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="email" class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">
         Adresse e-mail
       </label>
       <input
         id="email"
         type="email"
         formControlName="email"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        [class.border-red-500]="email?.invalid && email?.touched"
+        class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm placeholder:text-sand focus:outline-none focus:border-charcoal transition-colors duration-300"
+        [class.border-error]="email?.invalid && email?.touched"
         placeholder="exemple@email.com"
       />
       @if (email?.invalid && email?.touched) {
-        <p class="mt-1 text-sm text-red-600">
+        <p class="mt-2 font-sans text-xs text-error">
           @if (email?.errors?.['required']) {
             L'adresse e-mail est requise
           } @else if (email?.errors?.['email']) {
@@ -81,77 +77,80 @@
     </div>
 
     <div>
-      <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="password" class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">
         Mot de passe
       </label>
       <input
         id="password"
         type="password"
         formControlName="password"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        [class.border-red-500]="password?.invalid && password?.touched"
+        class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm placeholder:text-sand focus:outline-none focus:border-charcoal transition-colors duration-300"
+        [class.border-error]="password?.invalid && password?.touched"
         placeholder="••••••••"
       />
       @if (password?.invalid && password?.touched) {
-        <p class="mt-1 text-sm text-red-600">
+        <p class="mt-2 font-sans text-xs text-error">
           @if (password?.errors?.['required']) {
             Le mot de passe est requis
           } @else if (password?.errors?.['minlength']) {
-            Le mot de passe doit contenir au moins 6 caractères
+            Min. 6 caracteres
           }
         </p>
       }
     </div>
 
     <div>
-      <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
+      <label for="confirmPassword" class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">
         Confirmer le mot de passe
       </label>
       <input
         id="confirmPassword"
         type="password"
         formControlName="confirmPassword"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        [class.border-red-500]="(confirmPassword?.invalid || registerForm.errors?.['passwordMismatch']) && confirmPassword?.touched"
+        class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm placeholder:text-sand focus:outline-none focus:border-charcoal transition-colors duration-300"
+        [class.border-error]="(confirmPassword?.invalid || registerForm.errors?.['passwordMismatch']) && confirmPassword?.touched"
         placeholder="••••••••"
       />
       @if (confirmPassword?.invalid && confirmPassword?.touched) {
-        <p class="mt-1 text-sm text-red-600">
+        <p class="mt-2 font-sans text-xs text-error">
           @if (confirmPassword?.errors?.['required']) {
-            La confirmation du mot de passe est requise
+            La confirmation est requise
           }
         </p>
       }
       @if (registerForm.errors?.['passwordMismatch'] && confirmPassword?.touched) {
-        <p class="mt-1 text-sm text-red-600">Les mots de passe ne correspondent pas</p>
+        <p class="mt-2 font-sans text-xs text-error">Les mots de passe ne correspondent pas</p>
       }
     </div>
 
     <button
       type="submit"
       [disabled]="isLoading()"
-      class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="w-full py-4 font-sans text-xs tracking-[0.15em] uppercase bg-taupe text-cream hover:bg-taupe/90 transition-all duration-500 disabled:opacity-40 disabled:cursor-not-allowed"
     >
       @if (isLoading()) {
-        <span class="flex items-center justify-center">
-          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+        <span class="flex items-center justify-center gap-3">
+          <span class="w-4 h-4 border border-cream/40 border-t-cream rounded-full animate-spin"></span>
           Inscription en cours...
         </span>
       } @else {
-        Créer un compte
+        Creer un compte
       }
     </button>
   </form>
 
-  <div class="mt-6 text-center">
-    <p class="text-sm text-gray-600">
-      Vous avez déjà un compte ?
-      <a [routerLink]="['/auth/login']" class="text-blue-600 hover:text-blue-700 font-medium">
+  <div class="mt-10 text-center">
+    <p class="font-sans text-sm text-stone font-light">
+      Vous avez deja un compte ?
+      <a [routerLink]="['/auth/login']" class="text-taupe hover:text-charcoal font-normal transition-colors duration-300">
         Se connecter
       </a>
     </p>
+  </div>
+
+  <div class="mt-8 text-center">
+    <a routerLink="/" class="font-sans text-xs tracking-[0.1em] uppercase text-sand hover:text-stone transition-colors duration-300">
+      &larr; Retour a l'accueil
+    </a>
   </div>
 </div>

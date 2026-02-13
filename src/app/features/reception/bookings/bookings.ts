@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReceptionService } from '../../../core/services/reception.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { BookingStatus } from '../../../core/constants/api.constants';
 import type { Booking } from '../../../shared/types';
 
@@ -13,6 +14,7 @@ import type { Booking } from '../../../shared/types';
 })
 export class BookingsComponent implements OnInit {
   private receptionService = inject(ReceptionService);
+  private toastService = inject(ToastService);
 
   bookings = signal<Booking[]>([]);
   loading = signal(false);
@@ -33,6 +35,7 @@ export class BookingsComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
+        this.toastService.error('Impossible de charger les reservations');
       },
     });
   }
@@ -53,11 +56,11 @@ export class BookingsComponent implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     const classes: Record<string, string> = {
-      [BookingStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-      [BookingStatus.CONFIRMED]: 'bg-green-100 text-green-800',
-      [BookingStatus.CANCELLED]: 'bg-red-100 text-red-800',
+      [BookingStatus.PENDING]: 'bg-warning/10 text-warning',
+      [BookingStatus.CONFIRMED]: 'bg-success/10 text-success',
+      [BookingStatus.CANCELLED]: 'bg-error/10 text-error',
     };
-    return classes[status] || 'bg-gray-100 text-gray-800';
+    return classes[status] || 'bg-sand/20 text-stone';
   }
 
   formatDate(dateString: string): string {

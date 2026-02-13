@@ -41,21 +41,20 @@ export class AuthService {
           nom: response.nom,
           prenom: response.prenom,
           email: response.email,
-          role: response.role as UserRole,
+          role: (response.role?.replace('ROLE_', '') || response.role) as UserRole,
         };
         this.setUser(user);
         this.currentUser.set(user);
         this.currentUserSubject.next(user);
-        
+
         if (!this.authStateReady()) {
           this.authStateReady.set(true);
         }
-        
-        setTimeout(() => {
-          this.redirectByRole(user.role);
-        }, 0);
+
+        this.redirectByRole(user.role);
       }),
       catchError((error) => {
+        console.error('Login error:', error);
         return throwError(() => this.errorHandler.handleError(error));
       })
     );
@@ -92,7 +91,7 @@ export class AuthService {
   }
 
   getCurrentUser(): User | null {
-    return this.currentUserSubject.value;
+    return this.currentUserSubject.value ?? this.getUserFromStorage();
   }
 
   hasRole(role: UserRole): boolean {
@@ -152,7 +151,9 @@ export class AuthService {
       return null;
     }
     const userStr = localStorage.getItem(STORAGE_KEYS.USER);
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+    const user = JSON.parse(userStr) as User;
+    return { ...user, role: (user.role?.replace('ROLE_', '') || user.role) as UserRole };
   }
 
   private redirectByRole(role: UserRole): void {

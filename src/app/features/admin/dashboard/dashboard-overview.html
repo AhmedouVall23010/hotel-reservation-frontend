@@ -1,69 +1,61 @@
-<div class="space-y-6">
+<div class="space-y-10">
   <div>
-    <h1 class="text-3xl font-bold text-gray-900">Tableau de bord</h1>
-    <p class="text-gray-600 mt-1">Vue d'ensemble du système</p>
+    <h1 class="font-serif text-3xl font-light text-charcoal">Tableau de bord</h1>
+    <p class="font-sans text-sm text-stone font-light mt-2">Vue d'ensemble du systeme</p>
   </div>
 
   @if (loading()) {
-    <div class="flex justify-center items-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <div class="flex justify-center items-center py-16">
+      <div class="w-8 h-8 border border-sand border-t-taupe rounded-full animate-spin"></div>
     </div>
   } @else {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Total Utilisateurs</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ getTotalUsers() }}</p>
-          </div>
-          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      <div class="bg-cream/50 border border-linen p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-10 h-10 bg-taupe/10 flex items-center justify-center">
+            <svg class="w-5 h-5 text-taupe" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
             </svg>
           </div>
         </div>
+        <p class="font-serif text-3xl text-charcoal mb-1">{{ getTotalUsers() }}</p>
+        <p class="font-sans text-xs tracking-[0.1em] uppercase text-stone">Utilisateurs</p>
       </div>
 
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Total Chambres</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ getTotalRooms() }}</p>
-          </div>
-          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      <div class="bg-cream/50 border border-linen p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-10 h-10 bg-gold/10 flex items-center justify-center">
+            <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21" />
             </svg>
           </div>
         </div>
+        <p class="font-serif text-3xl text-charcoal mb-1">{{ getTotalRooms() }}</p>
+        <p class="font-sans text-xs tracking-[0.1em] uppercase text-stone">Total chambres</p>
       </div>
 
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Chambres Disponibles</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ getAvailableRooms() }}</p>
-          </div>
-          <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div class="bg-cream/50 border border-linen p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-10 h-10 bg-success/10 flex items-center justify-center">
+            <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         </div>
+        <p class="font-serif text-3xl text-charcoal mb-1">{{ getAvailableRooms() }}</p>
+        <p class="font-sans text-xs tracking-[0.1em] uppercase text-stone">Disponibles</p>
       </div>
 
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Chambres Occupées</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ getOccupiedRooms() }}</p>
-          </div>
-          <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      <div class="bg-cream/50 border border-linen p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-10 h-10 bg-error/10 flex items-center justify-center">
+            <svg class="w-5 h-5 text-error" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
             </svg>
           </div>
         </div>
+        <p class="font-serif text-3xl text-charcoal mb-1">{{ getOccupiedRooms() }}</p>
+        <p class="font-sans text-xs tracking-[0.1em] uppercase text-stone">Occupees</p>
       </div>
     </div>
   }

@@ -42,3 +42,21 @@ export type ReservedDate = {
   readonly startDate: string;
   readonly endDate: string;
 };
+
+// Response type for dates-reserved endpoint
+export type ReservedDatesResponse = {
+  readonly roomId: number;
+  readonly dates: string[];
+  readonly message?: string;
+};
+
+// Extended room type with reserved dates (for caching)
+export type RoomWithReservedDates = Room & {
+  readonly reservedDates?: string[];
+};
+
+// Date range type for validation
+export type DateRange = {
+  readonly startDate: string;
+  readonly endDate: string;
+};

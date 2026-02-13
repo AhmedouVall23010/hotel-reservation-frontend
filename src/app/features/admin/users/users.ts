@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { UserRole } from '../../../core/constants/api.constants';
 import type { User, AdminAddUserRequest, AdminUpdateUserRequest } from '../../../shared/types';
 
@@ -15,6 +16,7 @@ import type { User, AdminAddUserRequest, AdminUpdateUserRequest } from '../../..
 export class UsersComponent implements OnInit {
   private adminService = inject(AdminService);
   private fb = inject(FormBuilder);
+  private toastService = inject(ToastService);
 
   users = signal<User[]>([]);
   loading = signal(false);
@@ -23,7 +25,6 @@ export class UsersComponent implements OnInit {
   showDeleteModal = signal(false);
   selectedUser = signal<User | null>(null);
   userToDelete = signal<User | null>(null);
-  actionStatus = signal<'idle' | 'success' | 'error'>('idle');
 
   addForm: FormGroup;
   editForm: FormGroup;
@@ -61,6 +62,7 @@ export class UsersComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
+        this.toastService.error('Impossible de charger les utilisateurs');
       },
     });
   }
@@ -70,7 +72,6 @@ export class UsersComponent implements OnInit {
       role: UserRole.USER,
     });
     this.showAddModal.set(true);
-    this.actionStatus.set('idle');
   }
 
   closeAddModal(): void {
@@ -88,7 +89,6 @@ export class UsersComponent implements OnInit {
       password: '',
     });
     this.showEditModal.set(true);
-    this.actionStatus.set('idle');
   }
 
   closeEditModal(): void {
@@ -108,14 +108,12 @@ export class UsersComponent implements OnInit {
 
     this.adminService.addUser(userData).subscribe({
       next: () => {
-        this.actionStatus.set('success');
+        this.toastService.success('Utilisateur ajoute avec succes');
         this.loadUsers();
-        setTimeout(() => {
-          this.closeAddModal();
-        }, 1000);
+        this.closeAddModal();
       },
       error: () => {
-        this.actionStatus.set('error');
+        this.toastService.error("Erreur lors de l'ajout de l'utilisateur");
         this.loading.set(false);
       },
     });
@@ -138,14 +136,12 @@ export class UsersComponent implements OnInit {
 
     this.adminService.updateUser(this.selectedUser()!.id, userData).subscribe({
       next: () => {
-        this.actionStatus.set('success');
+        this.toastService.success('Utilisateur modifie avec succes');
         this.loadUsers();
-        setTimeout(() => {
-          this.closeEditModal();
-        }, 1000);
+        this.closeEditModal();
       },
       error: () => {
-        this.actionStatus.set('error');
+        this.toastService.error("Erreur lors de la modification de l'utilisateur");
         this.loading.set(false);
       },
     });
@@ -171,9 +167,11 @@ export class UsersComponent implements OnInit {
         this.users.update(users => users.filter(u => u.id !== user.id));
         this.closeDeleteModal();
         this.loading.set(false);
+        this.toastService.success('Utilisateur supprime avec succes');
       },
       error: () => {
         this.loading.set(false);
+        this.toastService.error("Erreur lors de la suppression de l'utilisateur");
       },
     });
   }
@@ -189,11 +187,11 @@ export class UsersComponent implements OnInit {
 
   getRoleBadgeClass(role: UserRole): string {
     const classes: Record<UserRole, string> = {
-      [UserRole.ADMIN]: 'bg-purple-100 text-purple-800',
-      [UserRole.RECEPTION]: 'bg-blue-100 text-blue-800',
-      [UserRole.USER]: 'bg-green-100 text-green-800',
+      [UserRole.ADMIN]: 'bg-taupe/10 text-taupe',
+      [UserRole.RECEPTION]: 'bg-gold/10 text-gold',
+      [UserRole.USER]: 'bg-success/10 text-success',
     };
-    return classes[role] || 'bg-gray-100 text-gray-800';
+    return classes[role] || 'bg-sand/20 text-stone';
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
