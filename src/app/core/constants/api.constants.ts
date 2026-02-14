@@ -22,7 +22,11 @@ export const API_ENDPOINTS = {
   RECEPTION: {
     ROOMS_AVAILABLE: '/reseption/rooms-available',
     ROOMS_RESERVED: '/reseption/rooms-reserved',
-    BOOKINGS_STATUS: '/reseption/bookings-status',
+    BOOKINGS_ACTIVE: '/reseption/bookings/active',
+    BOOKINGS_ADD: '/reseption/bookings/add',
+    BOOKINGS_UPDATE: (id: number) => `/reseption/bookings/update/${id}`,
+    BOOKINGS_CHANGE_STATUS: (id: number) => `/reseption/bookings/change-status/${id}`,
+    BOOKINGS_DELETE: (id: number) => `/reseption/bookings/delete/${id}`,
   },
   ADMIN_USERS: {
     GET_ALL: '/admin/users',

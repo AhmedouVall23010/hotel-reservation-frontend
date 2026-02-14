@@ -40,8 +40,31 @@ export type ClientChangeBookingStatusRequest = {
   readonly status: BookingStatus;
 };
 
-export type ReceptionBookingsStatusRequest = {
+export type ReceptionAddBookingRequest = {
+  readonly userId: number;
+  readonly roomId: number;
+  readonly startDate: string;
+  readonly endDate: string;
+};
+
+export type ReceptionUpdateBookingRequest = {
+  readonly status?: BookingStatus;
+  readonly startDate?: string;
+  readonly endDate?: string;
+};
+
+export type ReceptionChangeStatusRequest = {
   readonly status: BookingStatus;
+};
+
+export type ReceptionUpdateBookingResponse = {
+  readonly message: string;
+  readonly booking: Booking;
+};
+
+export type ReceptionChangeStatusResponse = {
+  readonly message: string;
+  readonly booking: Booking;
 };
 
 export type AdminAddBookingRequest = {

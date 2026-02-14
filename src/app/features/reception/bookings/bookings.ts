@@ -17,6 +17,7 @@ export class BookingsComponent implements OnInit {
   private toastService = inject(ToastService);
 
   bookings = signal<Booking[]>([]);
+  filteredBookings = signal<Booking[]>([]);
   loading = signal(false);
   selectedStatus = signal<BookingStatus>(BookingStatus.PENDING);
   
@@ -28,9 +29,10 @@ export class BookingsComponent implements OnInit {
 
   loadBookings(): void {
     this.loading.set(true);
-    this.receptionService.getBookingsByStatus(this.selectedStatus()).subscribe({
+    this.receptionService.getActiveBookings().subscribe({
       next: (bookings) => {
         this.bookings.set(bookings);
+        this.filterBookings();
         this.loading.set(false);
       },
       error: () => {
@@ -42,7 +44,14 @@ export class BookingsComponent implements OnInit {
 
   onStatusChange(status: BookingStatus): void {
     this.selectedStatus.set(status);
-    this.loadBookings();
+    this.filterBookings();
+  }
+
+  filterBookings(): void {
+    const status = this.selectedStatus();
+    const allBookings = this.bookings();
+    const filtered = allBookings.filter(booking => booking.status === status);
+    this.filteredBookings.set(filtered);
   }
 
   getStatusLabel(status: string): string {
@@ -70,5 +79,32 @@ export class BookingsComponent implements OnInit {
       month: 'long',
       day: 'numeric',
     });
+  }
+
+  changeStatus(booking: Booking, newStatus: BookingStatus): void {
+    if (booking.status === newStatus) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.receptionService.changeBookingStatus(booking.id, { status: newStatus }).subscribe({
+      next: (response) => {
+        this.bookings.update(bookings => 
+          bookings.map(b => b.id === booking.id ? response.booking : b)
+        );
+        this.filterBookings();
+        this.loading.set(false);
+        this.toastService.success('Statut modifie avec succes');
+      },
+      error: () => {
+        this.loading.set(false);
+        this.toastService.error('Erreur lors de la modification du statut');
+      },
+    });
+  }
+
+  getAvailableStatuses(currentStatus: string): BookingStatus[] {
+    const allStatuses = [BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.CANCELLED];
+    return allStatuses.filter(status => status !== currentStatus);
   }
 }

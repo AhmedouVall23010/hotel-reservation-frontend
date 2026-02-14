@@ -70,5 +70,67 @@
         <p class="font-sans text-xs tracking-[0.1em] uppercase text-stone">Reservations</p>
       </div>
     </div>
+
+    <div class="mt-10">
+      <div class="mb-6">
+        <h2 class="font-serif text-2xl font-light text-charcoal">Reservations d'aujourd'hui</h2>
+        <p class="font-sans text-sm text-stone font-light mt-2">Les reservations qui commencent aujourd'hui</p>
+      </div>
+
+      @if (todayBookings().length === 0) {
+        <div class="bg-cream/50 border border-linen p-8 text-center">
+          <p class="font-sans text-sm text-stone font-light">Aucune reservation ne commence aujourd'hui</p>
+        </div>
+      } @else {
+        <div class="border border-linen overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead>
+                <tr class="bg-cream/50">
+                  <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Client</th>
+                  <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Chambre</th>
+                  <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Date debut</th>
+                  <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Date fin</th>
+                  <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Prix total</th>
+                  <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Statut</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-linen">
+                @for (booking of todayBookings(); track booking.id) {
+                  <tr class="hover:bg-cream/30 transition-colors duration-300">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      @if (booking.user) {
+                        <p class="font-serif text-base text-charcoal">{{ booking.user.nom }} {{ booking.user.prenom }}</p>
+                        <p class="font-sans text-xs text-stone mt-0.5">{{ booking.user.email }}</p>
+                      } @else {
+                        <p class="font-sans text-sm text-stone">N/A</p>
+                      }
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <p class="font-serif text-base text-charcoal">Chambre {{ booking.room.roomNumber }}</p>
+                      <p class="font-sans text-xs text-stone mt-0.5">{{ booking.room.type }}</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <p class="font-sans text-sm text-charcoal">{{ formatDate(booking.startDate) }}</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <p class="font-sans text-sm text-charcoal">{{ formatDate(booking.endDate) }}</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <p class="font-serif text-base text-gold">{{ booking.totalPrice }} MRU</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span [class]="'px-3 py-1 font-sans text-xs tracking-[0.05em] uppercase ' + getStatusBadgeClass(booking.status)">
+                        {{ getStatusLabel(booking.status) }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
   }
 </div>

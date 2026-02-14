@@ -51,21 +51,12 @@ export class DashboardOverviewComponent implements OnInit {
   }
 
   loadBookings(): void {
-    this.receptionService.getBookingsByStatus(BookingStatus.PENDING).subscribe({
+    this.receptionService.getActiveBookings().subscribe({
       next: (bookings) => {
-        this.pendingBookings.set(bookings);
-        this.loadConfirmedBookings();
-      },
-      error: () => {
-        this.loading.set(false);
-      },
-    });
-  }
-
-  loadConfirmedBookings(): void {
-    this.receptionService.getBookingsByStatus(BookingStatus.CONFIRMED).subscribe({
-      next: (bookings) => {
-        this.confirmedBookings.set(bookings);
+        const pending = bookings.filter(b => b.status === BookingStatus.PENDING);
+        const confirmed = bookings.filter(b => b.status === BookingStatus.CONFIRMED);
+        this.pendingBookings.set(pending);
+        this.confirmedBookings.set(confirmed);
         this.loading.set(false);
       },
       error: () => {

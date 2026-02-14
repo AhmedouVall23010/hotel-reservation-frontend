@@ -24,6 +24,7 @@ export class RoomsComponent implements OnInit {
   showEditModal = signal(false);
   showDeleteModal = signal(false);
   selectedRoom = signal<Room | null>(null);
+  originalRoomData = signal<Room | null>(null);
   roomToDelete = signal<Room | null>(null);
 
   addForm: FormGroup;
@@ -87,6 +88,7 @@ export class RoomsComponent implements OnInit {
 
   openEditModal(room: Room): void {
     this.selectedRoom.set(room);
+    this.originalRoomData.set({ ...room });
     this.editForm.patchValue({
       roomNumber: room.roomNumber,
       description: room.description,
@@ -101,6 +103,7 @@ export class RoomsComponent implements OnInit {
   closeEditModal(): void {
     this.showEditModal.set(false);
     this.selectedRoom.set(null);
+    this.originalRoomData.set(null);
     this.editForm.reset();
   }
 
@@ -147,18 +150,50 @@ export class RoomsComponent implements OnInit {
   }
 
   updateRoom(): void {
-    if (this.editForm.invalid || !this.selectedRoom()) {
+    if (this.editForm.invalid || !this.selectedRoom() || !this.originalRoomData()) {
+      this.markFormGroupTouched(this.editForm);
+      if (this.editForm.invalid) {
+        this.toastService.error('Veuillez remplir tous les champs requis');
+      }
       return;
     }
 
     this.loading.set(true);
-    const roomData: AdminUpdateRoomRequest = {
-      roomNumber: Number(this.editForm.value.roomNumber),
-      description: this.editForm.value.description,
-      type: this.editForm.value.type,
-      price: Number(this.editForm.value.price),
-      ...(this.editForm.value.image && { image: this.editForm.value.image }),
-    };
+    const formValue = this.editForm.value;
+    const original = this.originalRoomData()!;
+    
+    // Build roomData object with only changed fields
+    const roomData: AdminUpdateRoomRequest = {} as AdminUpdateRoomRequest;
+
+    // Only include fields that have changed
+    const newRoomNumber = Number(formValue.roomNumber);
+    if (newRoomNumber !== original.roomNumber) {
+      (roomData as any).roomNumber = newRoomNumber;
+    }
+
+    if (formValue.description !== original.description) {
+      (roomData as any).description = formValue.description;
+    }
+
+    if (formValue.type !== original.type) {
+      (roomData as any).type = formValue.type;
+    }
+
+    const newPrice = Number(formValue.price);
+    if (newPrice !== original.price) {
+      (roomData as any).price = newPrice;
+    }
+
+    if (formValue.image) {
+      (roomData as any).image = formValue.image;
+    }
+
+    // Check if there are any changes
+    if (Object.keys(roomData).length === 0) {
+      this.toastService.error('Aucune modification detectee');
+      this.loading.set(false);
+      return;
+    }
 
     this.adminService.updateRoom(this.selectedRoom()!.id, roomData).subscribe({
       next: () => {
@@ -166,8 +201,17 @@ export class RoomsComponent implements OnInit {
         this.loadRooms();
         this.closeEditModal();
       },
-      error: () => {
-        this.toastService.error('Erreur lors de la modification de la chambre');
+      error: (error) => {
+        console.error('Error updating room:', error);
+        let errorMessage = 'Erreur lors de la modification de la chambre';
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 400) {
+          errorMessage = 'Donnees invalides';
+        } else if (error.status === 404) {
+          errorMessage = 'Chambre introuvable';
+        }
+        this.toastService.error(errorMessage);
         this.loading.set(false);
       },
     });

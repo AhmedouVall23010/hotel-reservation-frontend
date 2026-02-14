@@ -14,10 +14,6 @@ export const routes: Routes = [
         loadComponent: () => import('./rooms-available/rooms-available').then(m => m.RoomsAvailableComponent),
       },
       {
-        path: 'rooms-reserved',
-        loadComponent: () => import('./rooms-reserved/rooms-reserved').then(m => m.RoomsReservedComponent),
-      },
-      {
         path: 'bookings',
         loadComponent: () => import('./bookings/bookings').then(m => m.BookingsComponent),
       },

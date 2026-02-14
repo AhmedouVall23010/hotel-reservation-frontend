@@ -161,6 +161,9 @@
             <label class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">Numero de chambre</label>
             <input type="number" formControlName="roomNumber"
               class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm focus:outline-none focus:border-charcoal transition-colors duration-300" />
+            @if (editForm.get('roomNumber')?.invalid && editForm.get('roomNumber')?.touched) {
+              <p class="font-sans text-xs text-error mt-2">Requis et doit être supérieur à 0</p>
+            }
           </div>
 
           <div>
@@ -171,18 +174,27 @@
                 <option [value]="type">{{ type }}</option>
               }
             </select>
+            @if (editForm.get('type')?.invalid && editForm.get('type')?.touched) {
+              <p class="font-sans text-xs text-error mt-2">Requis</p>
+            }
           </div>
 
           <div>
             <label class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">Prix (MRU)</label>
             <input type="number" formControlName="price" step="0.01"
               class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm focus:outline-none focus:border-charcoal transition-colors duration-300" />
+            @if (editForm.get('price')?.invalid && editForm.get('price')?.touched) {
+              <p class="font-sans text-xs text-error mt-2">Requis et doit être supérieur ou égal à 0</p>
+            }
           </div>
 
           <div>
             <label class="block font-sans text-xs tracking-[0.12em] uppercase text-stone mb-3">Description</label>
             <textarea formControlName="description" rows="3"
               class="w-full px-0 py-3 bg-transparent border-0 border-b border-sand text-charcoal font-sans text-sm focus:outline-none focus:border-charcoal transition-colors duration-300 resize-none"></textarea>
+            @if (editForm.get('description')?.invalid && editForm.get('description')?.touched) {
+              <p class="font-sans text-xs text-error mt-2">Requis</p>
+            }
           </div>
 
           <div>

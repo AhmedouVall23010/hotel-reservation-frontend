@@ -44,10 +44,11 @@
               <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Date fin</th>
               <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Prix total</th>
               <th class="px-6 py-4 text-left font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Statut</th>
+              <th class="px-6 py-4 text-right font-sans text-xs tracking-[0.1em] uppercase text-stone font-medium">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-linen">
-            @for (booking of bookings(); track booking.id) {
+            @for (booking of filteredBookings(); track booking.id) {
               <tr class="hover:bg-cream/30 transition-colors duration-300">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <p class="font-serif text-base text-charcoal">Chambre {{ booking.room.roomNumber }}</p>
@@ -67,10 +68,44 @@
                     {{ getStatusLabel(booking.status) }}
                   </span>
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="flex items-center justify-end gap-2 flex-wrap">
+                    @for (status of getAvailableStatuses(booking.status); track status) {
+                      <button
+                        (click)="changeStatus(booking, status)"
+                        [disabled]="loading()"
+                        [class]="'px-4 py-2 font-sans text-xs tracking-[0.08em] uppercase transition-all duration-300 disabled:opacity-40 rounded ' +
+                          (status === BookingStatus.CONFIRMED 
+                            ? 'bg-success/10 border border-success text-success hover:bg-success/20 hover:border-success/80' 
+                            : status === BookingStatus.CANCELLED
+                            ? 'bg-error/10 border border-error text-error hover:bg-error/20 hover:border-error/80'
+                            : 'bg-warning/10 border border-warning text-warning hover:bg-warning/20 hover:border-warning/80')"
+                        title="Changer le statut à {{ getStatusLabel(status) }}"
+                      >
+                        <span class="flex items-center gap-1.5">
+                          @if (status === BookingStatus.CONFIRMED) {
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                          } @else if (status === BookingStatus.CANCELLED) {
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          } @else {
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          }
+                          {{ getStatusLabel(status) }}
+                        </span>
+                      </button>
+                    }
+                  </div>
+                </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="px-6 py-16 text-center">
+                <td colspan="6" class="px-6 py-16 text-center">
                   <p class="font-sans text-sm text-stone font-light">Aucune reservation trouvee</p>
                 </td>
               </tr>
